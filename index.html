@@ -6,7 +6,6 @@
   <title>Document Repository Beta</title>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link href="style.css" rel="stylesheet" />
-
 </head>
 <body>
   <header>
@@ -56,11 +55,10 @@
         <button onclick="closeProjectDialog()">Cancel</button>
       </div>
     </dialog>
-    
   </div>
 
   <script>
-    const projects = [];
+    window.projects = [];
 
     function openProjectDialog() {
       document.getElementById("projectDialog").showModal();
@@ -74,35 +72,53 @@
     }
 
     function createProject() {
-      const name = document.getElementById("projectNameInput").value.trim();
-      const description = document.getElementById("projectDescInput").value.trim();
-      const owner = document.getElementById("projectOwnerInput").value.trim();
+      const nameInput = document.getElementById("projectNameInput");
+      const ownerInput = document.getElementById("projectOwnerInput");
+      const nameError = document.getElementById("nameError");
+      const ownerError = document.getElementById("ownerError");
 
-      if (!name || !owner) {
-        alert("Please enter both a project name and owner.");
-        return;
+      const name = nameInput.value.trim();
+      const description = document.getElementById("projectDescInput").value.trim();
+      const owner = ownerInput.value.trim();
+
+      nameInput.classList.remove("input-error");
+      ownerInput.classList.remove("input-error");
+      nameError.style.display = "none";
+      ownerError.style.display = "none";
+
+      let hasError = false;
+      if (!name) {
+        nameInput.classList.add("input-error");
+        nameError.style.display = "block";
+        hasError = true;
       }
+      if (!owner) {
+        ownerInput.classList.add("input-error");
+        ownerError.style.display = "block";
+        hasError = true;
+      }
+      if (hasError) return;
 
       projects.push({ name, description, owner, folders: [] });
+      document.getElementById("folderDetails").classList.remove("active");
+      document.getElementById("project-grid").style.display = "block";
       renderProjects();
       closeProjectDialog();
-    }
 
-    function addFolderToProject(projectIndex) {
-      const folderName = prompt("Enter folder name:");
-      const subfolders = parseInt(prompt("How many sub-folders?"), 10) || 0;
-      const fileCount = parseInt(prompt("How many files?"), 10) || 0;
-      const files = Array.from({ length: fileCount }, (_, i) => `File_${i + 1}.pdf`);
-
-      if (folderName) {
-        projects[projectIndex].folders.push({ folderName, subfolders, files });
-        renderProjects();
-      }
+      console.log("Project added:", { name, description, owner });
+      console.log("Current projects:", projects);
     }
 
     function renderProjects() {
       const container = document.getElementById("project-grid");
       container.innerHTML = "";
+
+      console.log("Rendering", projects.length, "projects");
+
+      if (projects.length === 0) {
+        container.innerHTML = "<p>No projects created yet.</p>";
+        return;
+      }
 
       projects.forEach((project, index) => {
         const div = document.createElement("div");
@@ -122,18 +138,27 @@
       document.getElementById("breadcrumb").textContent = "Home / Projects";
     }
 
+    function addFolderToProject(projectIndex) {
+      const folderName = prompt("Enter folder name:");
+      const subfolders = parseInt(prompt("How many sub-folders?"), 10) || 0;
+      const fileCount = parseInt(prompt("How many files?"), 10) || 0;
+      const files = Array.from({ length: fileCount }, (_, i) => `File_${i + 1}.pdf`);
+
+      if (folderName) {
+        projects[projectIndex].folders.push({ folderName, subfolders, files });
+        renderProjects();
+      }
+    }
+
     function openFolderDetails(project) {
       const detailSection = document.getElementById("folderDetails");
       detailSection.classList.add("active");
       document.getElementById("project-grid").innerHTML = "";
       document.getElementById("breadcrumb").textContent = `Home / Projects / ${project.name}`;
 
-        const fileList = (project.folders || []).map(folder => {
+      const fileList = (project.folders || []).map(folder => {
         const files = folder.files.map(f => `<span class='file-badge'><span class='material-symbols-outlined'>description</span> ${f}</span>`).join("");
-        return `
-          <div class='folder-meta'><strong>${folder.folderName}</strong><br/>
-          ${folder.subfolders} sub-folder(s), ${folder.files.length} file(s)<br/>${files}</div><br/>
-        `;
+        return `<div class='folder-meta'><strong>${folder.folderName}</strong><br/>${folder.subfolders} sub-folder(s), ${folder.files.length} file(s)<br/>${files}</div><br/>`;
       }).join("");
 
       detailSection.innerHTML = `
@@ -145,6 +170,8 @@
         <button onclick="renderProjects()">Back</button>
       `;
     }
+
+    document.addEventListener("DOMContentLoaded", renderProjects);
   </script>
 </body>
 </html>

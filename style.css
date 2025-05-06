@@ -15,21 +15,6 @@ header {
   z-index: 1000;
 }
 
-.header-inner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: calc(100% - 240px);
-  margin-left: auto;
-}
-
-.user-info,
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .sidebar {
   width: 220px;
   background-color: #f4f4f4;
@@ -60,11 +45,6 @@ header {
   font-size: 14px;
   color: #666;
   margin-top: 10px;
-}
-
-.folder-list {
-  margin-top: 10px;
-  padding: 0 20px;
 }
 
 .folder-item {
@@ -131,7 +111,6 @@ dialog button:last-child {
   display: none;
 }
 
-
 @media (max-width: 768px) {
   .sidebar {
     display: none;
@@ -140,5 +119,3 @@ dialog button:last-child {
     margin-left: 0;
   }
 }
-
-
