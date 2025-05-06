@@ -15,6 +15,21 @@ header {
   z-index: 1000;
 }
 
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: calc(100% - 240px);
+  margin-left: auto;
+}
+
+.user-info,
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .sidebar {
   width: 220px;
   background-color: #f4f4f4;
@@ -45,6 +60,11 @@ header {
   font-size: 14px;
   color: #666;
   margin-top: 10px;
+}
+
+.folder-list {
+  margin-top: 10px;
+  padding: 0 20px;
 }
 
 .folder-item {
@@ -99,18 +119,6 @@ dialog button:last-child {
   color: #333;
 }
 
-.input-error {
-  border: 1px solid red;
-  background-color: #ffe6e6;
-}
-
-.error-message {
-  color: red;
-  font-size: 12px;
-  margin-top: 4px;
-  display: none;
-}
-
 @media (max-width: 768px) {
   .sidebar {
     display: none;
@@ -119,3 +127,50 @@ dialog button:last-child {
     margin-left: 0;
   }
 }
+.folder-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn {
+  background-color: #ffa726;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background-color: #fb8c00;
+}
+
+.delete-btn {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #e60000;
+}
+
+.create-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.create-btn:hover {
+  background-color: #218838;
+}
+
+
+
