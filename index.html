@@ -22,7 +22,11 @@
     <dialog id="projectDialog">
       <h2>Create New Project</h2>
       <input type="text" id="projectNameInput" placeholder="Enter project name" />
-      <button onclick="createProject()">Create</button>
+      <textarea id="projectDescInput" placeholder="Enter repository description"></textarea>
+      <div style="margin-top: 10px;">
+        <button onclick="createProject()">Create</button>
+        <button onclick="closeProjectDialog()">Cancel</button>
+      </div>
     </dialog>
   </div>
 
@@ -33,24 +37,61 @@
       document.getElementById("projectDialog").showModal();
     }
 
-    function createProject() {
-      const name = document.getElementById("projectNameInput").value.trim();
-      if (!name) return;
-      projects.push({ name, folders: [] });
-      renderProjects();
+    function closeProjectDialog() {
       document.getElementById("projectDialog").close();
       document.getElementById("projectNameInput").value = "";
+      document.getElementById("projectDescInput").value = "";
+    }
+
+    function createProject() {
+      const name = document.getElementById("projectNameInput").value.trim();
+      const description = document.getElementById("projectDescInput").value.trim();
+      if (!name) return;
+      projects.push({ name, description, folders: [] });
+      renderProjects();
+      closeProjectDialog();
     }
 
     function addFolder(index) {
       const name = prompt("Enter folder name:");
       if (!name) return;
-      projects[index].folders.push(name);
+      const owner = prompt("Enter folder owner:");
+      if (!owner) return;
+      projects[index].folders.push({ name, owner, files: [], expanded: false });
       renderProjects();
+    }
+
+    function deleteFolder(projectIndex, folderIndex) {
+      if (confirm("Are you sure you want to delete this folder?")) {
+        projects[projectIndex].folders.splice(folderIndex, 1);
+        renderProjects();
+      }
+    }
+
+    function deleteFile(projectIndex, folderIndex, fileIndex) {
+      if (confirm("Are you sure you want to delete this file?")) {
+        projects[projectIndex].folders[folderIndex].files.splice(fileIndex, 1);
+        renderProjects();
+      }
     }
 
     function toggleProject(index) {
       projects[index].expanded = !projects[index].expanded;
+      renderProjects();
+    }
+
+    function toggleFolder(projectIndex, folderIndex) {
+      const folder = projects[projectIndex].folders[folderIndex];
+      folder.expanded = !folder.expanded;
+      renderProjects();
+    }
+
+    function handleFileUpload(e, projectIndex, folderIndex) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const revisionName = prompt("Enter revision name for this file:");
+      if (!revisionName) return;
+      projects[projectIndex].folders[folderIndex].files.push({ name: file.name, revision: revisionName });
       renderProjects();
     }
 
@@ -67,11 +108,45 @@
               <span class="material-symbols-outlined">create_new_folder</span>
             </button>
           </div>
-          ${project.expanded ? `<div class="folder-list">${project.folders.map(f => `<div class='folder'><span class="material-symbols-outlined">folder</span>${f}</div>`).join("")}</div>` : ""}
+          <p class="project-description">${project.description}</p>
+          ${project.expanded ? `<div class="folder-list">
+            ${project.folders.map((folder, fIdx) => `
+              <div class='folder'>
+                <div class="folder-header" onclick="toggleFolder(${i}, ${fIdx})">
+                  <span class="material-symbols-outlined">${folder.expanded ? 'expand_less' : 'add'}</span>
+                  ${folder.name} <small>(Owner: ${folder.owner})</small>
+                  <button onclick="event.stopPropagation(); deleteFolder(${i}, ${fIdx})" title="Delete Folder">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+                ${folder.expanded ? `
+                  <input type="file" onchange="handleFileUpload(event, ${i}, ${fIdx})" title="Upload document" />
+                  <div class="file-list">
+                    <strong>${folder.files.length} file(s)</strong>
+                    ${folder.files.map((file, fId) => `
+                      <div class='file-item'>
+                        <span class='material-symbols-outlined'>description</span>
+                        ${file.name} <em>(Rev: ${file.revision})</em>
+                        <button onclick="event.stopPropagation(); deleteFile(${i}, ${fIdx}, ${fId})" title="Delete File">
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    `).join("")}
+                  </div>
+                ` : ""}
+              </div>
+            `).join("")}
+          </div>` : ""}
         `;
         grid.appendChild(card);
       });
     }
+
+    window.handleFileUpload = handleFileUpload;
+    window.toggleFolder = toggleFolder;
+    window.closeProjectDialog = closeProjectDialog;
+    window.deleteFolder = deleteFolder;
+    window.deleteFile = deleteFile;
   </script>
 </body>
 </html>
