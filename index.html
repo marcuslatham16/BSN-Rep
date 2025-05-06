@@ -36,11 +36,20 @@
   </div>
 
   <div class="main-content">
-    <main id="project-grid" style="padding: 20px;"></main>
     <section id="folderDetails"></section>
+    <dialog id="projectDialog">
+      ...
+    </dialog>
+  </div>
+  
+  <!-- New: Full-width project display -->
+  <div id="projectSection">
+    <main id="project-grid" style="padding: 20px;"></main>
+  </div>
+  
 
     <dialog id="projectDialog">
-      <h2 id="dialogTitle">Create New Project</h2>
+      <h2 id="dialogTitle">New Project</h2>
       <div>
         <input type="text" id="projectNameInput" placeholder="Enter project name" />
         <div id="nameError" class="error-message">Project name is required.</div>
@@ -167,13 +176,22 @@
 
     function addFolderToProject(index) {
       const folderName = prompt("Folder name:");
-      const fileCount = parseInt(prompt("How many files?"), 10) || 0;
-      const files = Array.from({ length: fileCount }, (_, i) => `File_${i + 1}.pdf`);
-      if (folderName) {
-        projects[index].folders.push({ folderName, subfolders: 0, files });
-        saveProjects();
-        renderProjects();
+      if (!folderName) return;
+
+      const files = [];
+      let file;
+      while ((file = prompt("Enter file name (leave blank to finish):"))) {
+        files.push(file);
       }
+
+      projects[index].folders.push({
+        folderName,
+        subfolders: 0,
+        files
+      });
+
+      saveProjects();
+      renderProjects();
     }
 
     document.addEventListener("DOMContentLoaded", () => {

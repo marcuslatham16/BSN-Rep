@@ -106,6 +106,15 @@ header {
   font-size: 13px;
 }
 
+#projectSection {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
+  margin-left: 0;
+}
+
+
 dialog button {
   border: none;
   padding: 8px 14px;
