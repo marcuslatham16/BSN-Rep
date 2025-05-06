@@ -96,6 +96,11 @@
         <div id="ownerError" class="error-message">Project owner is required.</div>
       </div>
       
+      <div class="form-group">
+        <label for="projectDateInput">Date Created</label>
+        <input type="date" id="projectDateInput" />
+      </div>
+      
       <div class="dialog-actions">
         <button type="button" id="saveBtn">
           <span class="material-symbols-outlined">save</span>
@@ -104,6 +109,56 @@
         <button type="button" onclick="closeProjectDialog()">
           <span class="material-symbols-outlined">close</span>
           Cancel
+        </button>
+      </div>
+    </form>
+  </dialog>
+  
+  <dialog id="folderDialog">
+    <h2>New Folder</h2>
+    <form id="folderForm">
+      <div class="form-group">
+        <label for="folderNameInput">Folder Name</label>
+        <input type="text" id="folderNameInput" placeholder="Enter folder name" />
+        <div id="folderNameError" class="error-message">Folder name is required.</div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="createFolderBtn">
+          <span class="material-symbols-outlined">create_new_folder</span>
+          <span>Create Folder</span>
+        </button>
+        <button type="button" id="cancelFolderBtn">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+  
+  <dialog id="fileUploadDialog">
+    <h2>Upload Files</h2>
+    <form id="fileUploadForm">
+      <div class="form-group">
+        <label for="fileInput">Select Files</label>
+        <div class="file-upload-container">
+          <input type="file" id="fileInput" multiple />
+          <button type="button" class="file-select-btn">
+            <span class="material-symbols-outlined">upload_file</span>
+            <span>Choose Files</span>
+          </button>
+        </div>
+        <div id="selectedFiles" class="selected-files"></div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="uploadFilesBtn">
+          <span class="material-symbols-outlined">cloud_upload</span>
+          <span>Upload</span>
+        </button>
+        <button type="button" id="cancelUploadBtn">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
         </button>
       </div>
     </form>
@@ -120,11 +175,13 @@
         projects = JSON.parse(data);
       } else {
         // Add sample projects for first-time users
+        const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
         projects = [
           {
             name: "Marketing Campaign",
             description: "Files and assets for Q2 marketing campaign",
             owner: "Sarah Johnson",
+            dateCreated: today,
             folders: [
               {
                 folderName: "Social Media",
@@ -136,6 +193,7 @@
             name: "Product Launch",
             description: "Documentation for the new product line",
             owner: "Michael Chen",
+            dateCreated: today,
             folders: [
               {
                 folderName: "Research",
@@ -157,10 +215,16 @@
       document.getElementById("dialogTitle").textContent = isEdit ? "Edit Project" : "Create New Project";
       document.getElementById("saveBtnText").textContent = isEdit ? "Save" : "Create";
 
+      // Set today's date as default for new projects
+      if (!isEdit) {
+        document.getElementById("projectDateInput").value = new Date().toISOString().split('T')[0];
+      }
+
       if (isEdit && projects[index]) {
         document.getElementById("projectNameInput").value = projects[index].name;
         document.getElementById("projectDescInput").value = projects[index].description;
         document.getElementById("projectOwnerInput").value = projects[index].owner;
+        document.getElementById("projectDateInput").value = projects[index].dateCreated || new Date().toISOString().split('T')[0];
         editingIndex = index;
       } else {
         clearForm();
@@ -178,6 +242,7 @@
       document.getElementById("projectNameInput").value = "";
       document.getElementById("projectDescInput").value = "";
       document.getElementById("projectOwnerInput").value = "";
+      document.getElementById("projectDateInput").value = new Date().toISOString().split('T')[0];
       document.getElementById("nameError").style.display = "none";
       document.getElementById("ownerError").style.display = "none";
     }
@@ -186,6 +251,7 @@
       const name = document.getElementById("projectNameInput").value.trim();
       const desc = document.getElementById("projectDescInput").value.trim();
       const owner = document.getElementById("projectOwnerInput").value.trim();
+      const dateCreated = document.getElementById("projectDateInput").value;
 
       const nameError = document.getElementById("nameError");
       const ownerError = document.getElementById("ownerError");
@@ -196,12 +262,19 @@
       if (!name || !owner) return;
 
       if (editingIndex !== null) {
-        projects[editingIndex] = { ...projects[editingIndex], name, description: desc, owner };
+        projects[editingIndex] = { 
+          ...projects[editingIndex], 
+          name, 
+          description: desc, 
+          owner, 
+          dateCreated 
+        };
       } else {
         projects.push({ 
           name, 
           description: desc, 
           owner, 
+          dateCreated,
           folders: [] 
         });
       }
@@ -270,6 +343,7 @@
 
       visible.forEach((project, i) => {
         const totalFiles = project.folders.reduce((sum, folder) => sum + folder.files.length, 0);
+        const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
         
         const div = document.createElement("div");
         div.className = "folder-item";
@@ -283,6 +357,10 @@
             <div class="stat">
               <span class="material-symbols-outlined">person</span>
               <span>${project.owner}</span>
+            </div>
+            <div class="stat">
+              <span class="material-symbols-outlined">calendar_today</span>
+              <span>Created: ${formattedDate}</span>
             </div>
             <div class="stat">
               <span class="material-symbols-outlined">folder</span>
@@ -308,61 +386,146 @@
         container.appendChild(div);
       });
     }
+    
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
 
     function addFolderToProject(index) {
-      const folderDialog = document.createElement('dialog');
-      folderDialog.className = 'folder-dialog';
+      // Use the predefined dialog instead of creating a new one
+      const folderDialog = document.getElementById('folderDialog');
+      const folderNameInput = document.getElementById('folderNameInput');
+      const folderNameError = document.getElementById('folderNameError');
       
-      folderDialog.innerHTML = `
-        <h2>New Folder</h2>
-        <div class="form-group">
-          <label for="folderNameInput">Folder Name</label>
-          <input type="text" id="folderNameInput" placeholder="Enter folder name" />
-        </div>
-        <div class="form-group">
-          <label>Files (one per line)</label>
-          <textarea id="filesInput" placeholder="Enter file names (one per line)"></textarea>
-        </div>
-        <div class="dialog-actions">
-          <button id="createFolderBtn">
-            <span class="material-symbols-outlined">add</span>
-            Create Folder
-          </button>
-          <button id="cancelFolderBtn">
-            <span class="material-symbols-outlined">close</span>
-            Cancel
-          </button>
-        </div>
-      `;
+      // Clear previous values
+      folderNameInput.value = '';
+      folderNameError.style.display = 'none';
       
-      document.body.appendChild(folderDialog);
+      // Store the current project index for later use
+      folderDialog.dataset.projectIndex = index;
+      
+      // Show the dialog
       folderDialog.showModal();
+    }
+    
+    function handleCreateFolder() {
+      const folderDialog = document.getElementById('folderDialog');
+      const folderNameInput = document.getElementById('folderNameInput');
+      const folderNameError = document.getElementById('folderNameError');
       
-      document.getElementById('createFolderBtn').addEventListener('click', () => {
-        const folderName = document.getElementById('folderNameInput').value.trim();
-        const filesText = document.getElementById('filesInput').value.trim();
+      const folderName = folderNameInput.value.trim();
+      const projectIndex = parseInt(folderDialog.dataset.projectIndex);
+      
+      if (!folderName) {
+        folderNameError.style.display = 'block';
+        return;
+      }
+      
+      // Create a new folder with an empty files array
+      projects[projectIndex].folders.push({
+        folderName,
+        files: []
+      });
+      
+      saveProjects();
+      renderProjects();
+      
+      // Close the dialog
+      folderDialog.close();
+      
+      // Prompt to upload files to the newly created folder
+      openFileUploadDialog(projectIndex, projects[projectIndex].folders.length - 1);
+    }
+    
+    function openFileUploadDialog(projectIndex, folderIndex) {
+      const fileUploadDialog = document.getElementById('fileUploadDialog');
+      const selectedFilesDiv = document.getElementById('selectedFiles');
+      const fileInput = document.getElementById('fileInput');
+      
+      // Clear previous selections
+      fileInput.value = '';
+      selectedFilesDiv.innerHTML = '';
+      
+      // Store the project and folder indices for later use
+      fileUploadDialog.dataset.projectIndex = projectIndex;
+      fileUploadDialog.dataset.folderIndex = folderIndex;
+      
+      // Update dialog title to show which folder we're uploading to
+      const folderName = projects[projectIndex].folders[folderIndex].folderName;
+      fileUploadDialog.querySelector('h2').textContent = `Upload Files to "${folderName}"`;
+      
+      // Show the dialog
+      fileUploadDialog.showModal();
+    }
+    
+    function handleFileSelection() {
+      const fileInput = document.getElementById('fileInput');
+      const selectedFilesDiv = document.getElementById('selectedFiles');
+      
+      selectedFilesDiv.innerHTML = '';
+      
+      if (fileInput.files.length > 0) {
+        for (let i = 0; i < fileInput.files.length; i++) {
+          const file = fileInput.files[i];
+          const fileItem = document.createElement('div');
+          fileItem.className = 'selected-file-item';
+          
+          // Determine file icon based on extension
+          let fileIcon = 'description';
+          const ext = file.name.split('.').pop().toLowerCase();
+          if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+            fileIcon = 'image';
+          } else if (['doc', 'docx'].includes(ext)) {
+            fileIcon = 'article';
+          } else if (['xls', 'xlsx'].includes(ext)) {
+            fileIcon = 'table';
+          } else if (['pdf'].includes(ext)) {
+            fileIcon = 'picture_as_pdf';
+          }
+          
+          fileItem.innerHTML = `
+            <span class="material-symbols-outlined">${fileIcon}</span>
+            <span class="file-name">${file.name}</span>
+            <span class="file-size">${formatFileSize(file.size)}</span>
+          `;
+          
+          selectedFilesDiv.appendChild(fileItem);
+        }
+      }
+    }
+    
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+    
+    function handleFileUpload() {
+      const fileUploadDialog = document.getElementById('fileUploadDialog');
+      const fileInput = document.getElementById('fileInput');
+      
+      const projectIndex = parseInt(fileUploadDialog.dataset.projectIndex);
+      const folderIndex = parseInt(fileUploadDialog.dataset.folderIndex);
+      
+      if (fileInput.files.length > 0) {
+        // In a real application, we would upload the files to a server here
+        // For this demo, we'll just add the filenames to the project data
         
-        if (!folderName) return;
-        
-        const files = filesText.split('\n')
-          .map(f => f.trim())
-          .filter(f => f.length > 0);
-        
-        projects[index].folders.push({
-          folderName,
-          files
-        });
+        for (let i = 0; i < fileInput.files.length; i++) {
+          projects[projectIndex].folders[folderIndex].files.push(fileInput.files[i].name);
+        }
         
         saveProjects();
         renderProjects();
-        folderDialog.close();
-        document.body.removeChild(folderDialog);
-      });
+      }
       
-      document.getElementById('cancelFolderBtn').addEventListener('click', () => {
-        folderDialog.close();
-        document.body.removeChild(folderDialog);
-      });
+      // Close the dialog
+      fileUploadDialog.close();
     }
 
     // Toggle sidebar on mobile
@@ -374,7 +537,25 @@
     document.addEventListener("DOMContentLoaded", () => {
       loadProjects();
       renderProjects();
+      
+      // Project dialog event listeners
       document.getElementById("saveBtn").addEventListener("click", handleSaveProject);
+      
+      // Folder dialog event listeners
+      document.getElementById("createFolderBtn").addEventListener("click", handleCreateFolder);
+      document.getElementById("cancelFolderBtn").addEventListener("click", () => {
+        document.getElementById("folderDialog").close();
+      });
+      
+      // File upload dialog event listeners
+      document.getElementById("fileInput").addEventListener("change", handleFileSelection);
+      document.querySelector(".file-select-btn").addEventListener("click", () => {
+        document.getElementById("fileInput").click();
+      });
+      document.getElementById("uploadFilesBtn").addEventListener("click", handleFileUpload);
+      document.getElementById("cancelUploadBtn").addEventListener("click", () => {
+        document.getElementById("fileUploadDialog").close();
+      });
       
       // Mobile menu toggle
       if (document.getElementById('menu-toggle')) {
