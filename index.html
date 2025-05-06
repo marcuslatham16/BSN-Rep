@@ -6,15 +6,16 @@
   <title>Document Repository Beta</title>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link href="style.css" rel="stylesheet" />
+  <style> ... (keep as-is) ... </style>
 </head>
 <body>
   <header>
-    <div class="header-inner">
-      <div class="user-info">
+    <div style="display: flex; justify-content: space-between; align-items: center; max-width: calc(100% - 240px); margin-left: auto;">
+      <div style="display: flex; align-items: center; gap: 10px;">
         <span class="material-symbols-outlined">account_circle</span>
         <strong>User Name</strong>
       </div>
-      <div class="header-actions">
+      <div style="display: flex; gap: 10px; align-items: center;">
         <div class="search-bar">
           <span class="material-symbols-outlined">search</span>
           <input type="text" id="searchInput" placeholder="Search projects or folders" oninput="renderProjects()" />
@@ -23,13 +24,9 @@
           <span class="material-symbols-outlined">add_circle</span>
           New Project
         </button>
-        <button class="create-btn" onclick="addFolderToHome()">
-          <span class="material-symbols-outlined">create_new_folder</span>
-          New Folder
-        </button>
       </div>
     </div>
-    <div class="breadcrumb" id="breadcrumb">Home / Projects</div>
+    <div class="breadcrumb" id="breadcrumb" style="max-width: calc(100% - 240px); margin-left: auto;">Home / Projects</div>
   </header>
 
   <div class="sidebar">
@@ -47,6 +44,7 @@
       <h2>Create New Project</h2>
       <input type="text" id="projectNameInput" placeholder="Enter project name" />
       <textarea id="projectDescInput" placeholder="Enter repository description"></textarea>
+      <input type="text" id="projectOwnerInput" placeholder="Enter project owner" />
       <div style="margin-top: 10px;">
         <button onclick="createProject()">Create</button>
         <button onclick="closeProjectDialog()">Cancel</button>
@@ -55,7 +53,7 @@
   </div>
 
   <script>
-    const folders = [];
+    const projects = [];
 
     function openProjectDialog() {
       document.getElementById("projectDialog").showModal();
@@ -65,25 +63,29 @@
       document.getElementById("projectDialog").close();
       document.getElementById("projectNameInput").value = "";
       document.getElementById("projectDescInput").value = "";
+      document.getElementById("projectOwnerInput").value = "";
     }
 
     function createProject() {
-      alert("Project created.");
+      const name = document.getElementById("projectNameInput").value.trim();
+      const description = document.getElementById("projectDescInput").value.trim();
+      const owner = document.getElementById("projectOwnerInput").value.trim();
+
+      if (name && owner) {
+        projects.push({ name, description, owner, folders: [] });
+        renderProjects();
+      }
       closeProjectDialog();
     }
 
-    function addFolderToHome() {
-      const name = prompt("Enter folder name:");
-      const description = prompt("Enter folder description:");
-      const owner = prompt("Enter owner name:");
+    function addFolderToProject(projectIndex) {
+      const folderName = prompt("Enter folder name:");
       const subfolders = parseInt(prompt("How many sub-folders?"), 10) || 0;
       const fileCount = parseInt(prompt("How many files?"), 10) || 0;
-      const files = [];
-      for (let i = 0; i < fileCount; i++) {
-        files.push(`File_${i + 1}.pdf`);
-      }
-      if (name && description && owner) {
-        folders.push({ name, description, owner, subfolders, files });
+      const files = Array.from({ length: fileCount }, (_, i) => `File_${i + 1}.pdf`);
+
+      if (folderName) {
+        projects[projectIndex].folders.push({ folderName, subfolders, files });
         renderProjects();
       }
     }
@@ -92,41 +94,42 @@
       const container = document.getElementById("project-grid");
       container.innerHTML = "";
 
-      const folderSection = document.createElement("div");
-      folderSection.classList.add("folder-list");
-
-      folders.forEach(folder => {
+      projects.forEach((project, index) => {
         const div = document.createElement("div");
         div.className = "folder-item";
         div.innerHTML = `
-          <div class="folder-title">${folder.name}</div>
-          <div class="folder-meta">${folder.description}</div>
-          <div class="folder-meta">Owner: ${folder.owner}</div>
-          <div class="folder-meta">${folder.subfolders} sub-folder(s), ${folder.files.length} file(s)</div>
+          <div class="folder-title">${project.name}</div>
+          <div class="folder-meta">${project.description}</div>
+          <div class="folder-meta">Owner: ${project.owner}</div>
+          <div class="folder-meta">${project.folders.length} folders</div>
+          <button onclick="event.stopPropagation(); addFolderToProject(${index})">Add Folder</button>
         `;
-        div.addEventListener("click", () => openFolderDetails(folder));
-        folderSection.appendChild(div);
+        div.addEventListener("click", () => openFolderDetails(project));
+        container.appendChild(div);
       });
 
-      container.appendChild(folderSection);
       document.getElementById("folderDetails").classList.remove("active");
       document.getElementById("breadcrumb").textContent = "Home / Projects";
     }
 
-    function openFolderDetails(folder) {
+    function openFolderDetails(project) {
       const detailSection = document.getElementById("folderDetails");
       detailSection.classList.add("active");
       document.getElementById("project-grid").innerHTML = "";
-      document.getElementById("breadcrumb").textContent = `Home / Projects / ${folder.name}`;
+      document.getElementById("breadcrumb").textContent = `Home / Projects / ${project.name}`;
 
-      const fileList = folder.files.map(f => `<span class="file-badge"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">description</span> ${f}</span>`).join("");
+      const fileList = project.folders.map(folder => {
+        const files = folder.files.map(f => `<span class='file-badge'><span class='material-symbols-outlined'>description</span> ${f}</span>`).join("");
+        return `
+          <div class='folder-meta'><strong>${folder.folderName}</strong><br/>
+          ${folder.subfolders} sub-folder(s), ${folder.files.length} file(s)<br/>${files}</div><br/>
+        `;
+      }).join("");
 
       detailSection.innerHTML = `
-        <h2>${folder.name}</h2>
-        <p><strong>Description:</strong> ${folder.description}</p>
-        <p><strong>Owner:</strong> ${folder.owner}</p>
-        <p><strong>Sub-folders:</strong> ${folder.subfolders}</p>
-        <p><strong>Files:</strong> ${folder.files.length}</p>
+        <h2>${project.name}</h2>
+        <p><strong>Description:</strong> ${project.description}</p>
+        <p><strong>Owner:</strong> ${project.owner}</p>
         <div>${fileList}</div>
         <br>
         <button onclick="renderProjects()">Back</button>
@@ -135,4 +138,3 @@
   </script>
 </body>
 </html>
-
