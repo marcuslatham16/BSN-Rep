@@ -324,68 +324,71 @@
     }
 
     function renderProjects() {
-      const container = document.getElementById("project-grid");
-      const filter = document.getElementById("searchInput").value.toLowerCase();
-      container.innerHTML = "";
+  const container = document.getElementById("project-grid");
+  const filter = document.getElementById("searchInput").value.toLowerCase();
+  container.innerHTML = "";
 
-      const visible = projects.filter(p => p.name.toLowerCase().includes(filter));
+  const visible = projects.filter(p => p.name.toLowerCase().includes(filter));
 
-      if (!visible.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <span class="material-symbols-outlined">folder_off</span>
-            <h3>No projects found</h3>
-            <p>Try adjusting your search or create a new project.</p>
-          </div>
-        `;
-        return;
-      }
+  if (!visible.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <span class="material-symbols-outlined">folder_off</span>
+        <h3>No projects found</h3>
+        <p>Try adjusting your search or create a new project.</p>
+      </div>
+    `;
+    return;
+  }
 
-      visible.forEach((project, i) => {
-        const totalFiles = project.folders.reduce((sum, folder) => sum + folder.files.length, 0);
-        const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
-        
-        const div = document.createElement("div");
-        div.className = "folder-item";
-        div.innerHTML = `
-          <div class="folder-header">
-            <span class="material-symbols-outlined">folder</span>
-            <div class="folder-title">${project.name}</div>
-          </div>
-          <div class="folder-description">${project.description || "No description provided"}</div>
-          <div class="folder-stats">
-            <div class="stat">
-              <span class="material-symbols-outlined">person</span>
-              <span>${project.owner}</span>
-            </div>
-            <div class="stat">
-              <span class="material-symbols-outlined">calendar_today</span>
-              <span>Created: ${formattedDate}</span>
-            </div>
-            <div class="stat">
-              <span class="material-symbols-outlined">folder</span>
-              <span>${project.folders.length} folders</span>
-            </div>
-            <div class="stat">
-              <span class="material-symbols-outlined">description</span>
-              <span>${totalFiles} files</span>
-            </div>
-          </div>
-          <div class="folder-actions">
-            <button onclick="addFolderToProject(${i})" title="Add Folder">
-              <span class="material-symbols-outlined">create_new_folder</span>
-            </button>
-            <button class="edit-btn" onclick="openProjectDialog(true, ${i})" title="Edit Project">
-              <span class="material-symbols-outlined">edit</span>
-            </button>
-            <button class="delete-btn" onclick="deleteProject(${i})" title="Delete Project">
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
+  visible.forEach((project, i) => {
+    const totalFiles = project.folders.reduce((sum, folder) => sum + folder.files.length, 0);
+    const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
+    
+    const div = document.createElement("div");
+    div.className = "folder-item";
+    div.innerHTML = `
+      <div class="folder-header">
+        <span class="material-symbols-outlined">folder</span>
+        <div class="folder-title">${project.name}</div>
+      </div>
+      <div class="folder-description">${project.description || "No description provided"}</div>
+      <div class="folder-stats">
+        <div class="stat">
+          <span class="material-symbols-outlined">person</span>
+          <span>${project.owner}</span>
+        </div>
+        <div class="stat">
+          <span class="material-symbols-outlined">calendar_today</span>
+          <span>Created: ${formattedDate}</span>
+        </div>
+        <div class="stat">
+          <span class="material-symbols-outlined">folder</span>
+          <span>${project.folders.length} folders</span>
+        </div>
+        <div class="stat">
+          <span class="material-symbols-outlined">description</span>
+          <span>${totalFiles} files</span>
+        </div>
+      </div>
+      <div class="folder-actions">
+        <button onclick="addFolderToProject(${i})" title="Add Folder">
+          <span class="material-symbols-outlined">create_new_folder</span>
+        </button>
+        <button onclick="uploadFilesToProject(${i})" title="Upload Files" class="upload-btn">
+          <span class="material-symbols-outlined">upload_file</span>
+        </button>
+        <button class="edit-btn" onclick="openProjectDialog(true, ${i})" title="Edit Project">
+          <span class="material-symbols-outlined">edit</span>
+        </button>
+        <button class="delete-btn" onclick="deleteProject(${i})" title="Delete Project">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
     
     function formatDate(dateString) {
       const date = new Date(dateString);
@@ -499,34 +502,94 @@
       }
     }
     
-    function formatFileSize(bytes) {
-      if (bytes < 1024) return bytes + ' B';
-      else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-      else return (bytes / 1048576).toFixed(1) + ' MB';
-    }
+    function uploadFilesToProject(projectIndex) {
+  // Check if the project has any folders
+  if (projects[projectIndex].folders.length === 0) {
+    // If no folders exist, prompt to create one first
+    const confirmDialog = document.createElement('dialog');
+    confirmDialog.className = 'confirmation-dialog';
     
-    function handleFileUpload() {
-      const fileUploadDialog = document.getElementById('fileUploadDialog');
-      const fileInput = document.getElementById('fileInput');
-      
-      const projectIndex = parseInt(fileUploadDialog.dataset.projectIndex);
-      const folderIndex = parseInt(fileUploadDialog.dataset.folderIndex);
-      
-      if (fileInput.files.length > 0) {
-        // In a real application, we would upload the files to a server here
-        // For this demo, we'll just add the filenames to the project data
-        
-        for (let i = 0; i < fileInput.files.length; i++) {
-          projects[projectIndex].folders[folderIndex].files.push(fileInput.files[i].name);
-        }
-        
-        saveProjects();
-        renderProjects();
-      }
-      
-      // Close the dialog
-      fileUploadDialog.close();
-    }
+    confirmDialog.innerHTML = `
+      <div class="confirmation-content">
+        <span class="material-symbols-outlined">info</span>
+        <h3>No Folders Available</h3>
+        <p>You need to create a folder first before uploading files.</p>
+        <div class="dialog-actions">
+          <button id="createFolderNowBtn" class="primary-btn">
+            <span class="material-symbols-outlined">create_new_folder</span>
+            Create Folder
+          </button>
+          <button id="cancelUploadBtn" class="secondary-btn">
+            <span class="material-symbols-outlined">close</span>
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(confirmDialog);
+    confirmDialog.showModal();
+    
+    document.getElementById('createFolderNowBtn').addEventListener('click', () => {
+      confirmDialog.close();
+      document.body.removeChild(confirmDialog);
+      addFolderToProject(projectIndex);
+    });
+    
+    document.getElementById('cancelUploadBtn').addEventListener('click', () => {
+      confirmDialog.close();
+      document.body.removeChild(confirmDialog);
+    });
+    
+    return;
+  }
+  
+  // If project has folders, show folder selection dialog
+  const folderSelectionDialog = document.createElement('dialog');
+  folderSelectionDialog.className = 'folder-selection-dialog';
+  
+  let folderOptions = '';
+  projects[projectIndex].folders.forEach((folder, idx) => {
+    folderOptions += `<option value="${idx}">${folder.folderName}</option>`;
+  });
+  
+  folderSelectionDialog.innerHTML = `
+    <h2>Select Folder</h2>
+    <div class="form-group">
+      <label for="folderSelectInput">Choose a folder to upload files to:</label>
+      <select id="folderSelectInput" class="folder-select">
+        ${folderOptions}
+      </select>
+    </div>
+    <div class="dialog-actions">
+      <button id="confirmFolderBtn" class="primary-btn">
+        <span class="material-symbols-outlined">check</span>
+        Continue
+      </button>
+      <button id="cancelSelectionBtn" class="secondary-btn">
+        <span class="material-symbols-outlined">close</span>
+        Cancel
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(folderSelectionDialog);
+  folderSelectionDialog.showModal();
+  
+  document.getElementById('confirmFolderBtn').addEventListener('click', () => {
+    const folderIndex = document.getElementById('folderSelectInput').value;
+    folderSelectionDialog.close();
+    document.body.removeChild(folderSelectionDialog);
+    
+    // Open the file upload dialog for the selected folder
+    openFileUploadDialog(projectIndex, folderIndex);
+  });
+  
+  document.getElementById('cancelSelectionBtn').addEventListener('click', () => {
+    folderSelectionDialog.close();
+    document.body.removeChild(folderSelectionDialog);
+  });
+}
 
     // Toggle sidebar on mobile
     function toggleSidebar() {
