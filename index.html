@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document Repository Beta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Document Repository</h1>
+      <button class="create-btn" onclick="openProjectDialog()">
+        <span class="material-symbols-outlined">add_circle</span>
+        New Project
+      </button>
+    </header>
+
+    <main id="project-grid"></main>
+
+    <dialog id="projectDialog">
+      <h2>Create New Project</h2>
+      <input type="text" id="projectNameInput" placeholder="Enter project name" />
+      <button onclick="createProject()">Create</button>
+    </dialog>
+  </div>
+
+  <script>
+    const projects = [];
+
+    function openProjectDialog() {
+      document.getElementById("projectDialog").showModal();
+    }
+
+    function createProject() {
+      const name = document.getElementById("projectNameInput").value.trim();
+      if (!name) return;
+      projects.push({ name, folders: [] });
+      renderProjects();
+      document.getElementById("projectDialog").close();
+      document.getElementById("projectNameInput").value = "";
+    }
+
+    function addFolder(index) {
+      const name = prompt("Enter folder name:");
+      if (!name) return;
+      projects[index].folders.push(name);
+      renderProjects();
+    }
+
+    function toggleProject(index) {
+      projects[index].expanded = !projects[index].expanded;
+      renderProjects();
+    }
+
+    function renderProjects() {
+      const grid = document.getElementById("project-grid");
+      grid.innerHTML = "";
+      projects.forEach((project, i) => {
+        const card = document.createElement("div");
+        card.className = "project-card";
+        card.innerHTML = `
+          <div class="project-header" onclick="toggleProject(${i})">
+            <h3>${project.name}</h3>
+            <button onclick="event.stopPropagation(); addFolder(${i})">
+              <span class="material-symbols-outlined">create_new_folder</span>
+            </button>
+          </div>
+          ${project.expanded ? `<div class="folder-list">${project.folders.map(f => `<div class='folder'><span class="material-symbols-outlined">folder</span>${f}</div>`).join("")}</div>` : ""}
+        `;
+        grid.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
