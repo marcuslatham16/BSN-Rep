@@ -53,8 +53,13 @@ header {
 
 .main-content {
   margin-left: 240px;
-  padding: 0;
+  padding: 20px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
+
 
 .breadcrumb {
   font-size: 14px;
