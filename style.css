@@ -4,14 +4,47 @@ body {
   background-color: #f9f9f9;
 }
 
-.app {
+.sidebar {
+  width: 220px;
+  background-color: #f4f4f4;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-right: 1px solid #ddd;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.sidebar-item:hover {
+  background-color: #e0e0e0;
+}
+
+.main-content {
+  margin-left: 240px;
   padding: 20px;
 }
 
 header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  margin-bottom: 20px;
+}
+
+.breadcrumb {
+  font-size: 14px;
+  color: #666;
+  margin-top: 10px;
 }
 
 .create-btn {
@@ -30,11 +63,26 @@ header {
   margin-right: 6px;
 }
 
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 0 3px rgba(0,0,0,0.1);
+}
+
+.search-bar input {
+  border: none;
+  outline: none;
+  margin-left: 6px;
+  font-size: 14px;
+}
+
 #project-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 16px;
-  margin-top: 20px;
 }
 
 .project-card {
@@ -101,10 +149,14 @@ header {
   padding: 4px 8px;
   margin-bottom: 4px;
   border-radius: 6px;
+  font-size: 12px;
+  flex-wrap: wrap;
 }
 
-.file-item span {
-  margin-right: 8px;
+.file-item span,
+.file-item em {
+  font-size: 12px;
+  word-break: break-word;
 }
 
 .file-item button {
@@ -120,3 +172,4 @@ dialog {
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
+
