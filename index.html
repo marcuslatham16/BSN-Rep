@@ -6,73 +6,42 @@
   <title>Document Repository Beta</title>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link href="style.css" rel="stylesheet" />
-  <style>
-    .file-item span, .file-item em {
-      font-size: 12px;
-      word-break: break-word;
-    }
-    .file-item {
-      flex-wrap: wrap;
-    }
-    .sidebar {
-      width: 220px;
-      background-color: #f4f4f4;
-      padding: 20px;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    .sidebar-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .main-content {
-      margin-left: 240px;
-      padding: 20px;
-    }
-    .breadcrumb {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 10px;
-    }
-  </style>
 </head>
 <body>
+  <header>
+    <div class="header-inner">
+      <div class="user-info">
+        <span class="material-symbols-outlined">account_circle</span>
+        <strong>User Name</strong>
+      </div>
+      <div class="header-actions">
+        <div class="search-bar">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" id="searchInput" placeholder="Search projects or folders" oninput="renderProjects()" />
+        </div>
+        <button class="create-btn" onclick="openProjectDialog()">
+          <span class="material-symbols-outlined">add_circle</span>
+          New Project
+        </button>
+        <button class="create-btn" onclick="addFolderToHome()">
+          <span class="material-symbols-outlined">create_new_folder</span>
+          New Folder
+        </button>
+      </div>
+    </div>
+    <div class="breadcrumb" id="breadcrumb">Home / Projects</div>
+  </header>
+
   <div class="sidebar">
     <div class="sidebar-item"><span class="material-symbols-outlined">home</span> Home</div>
     <div class="sidebar-item"><span class="material-symbols-outlined">workspaces</span> Projects</div>
     <div class="sidebar-item"><span class="material-symbols-outlined">area_chart</span> Reports</div>
     <div class="sidebar-item"><span class="material-symbols-outlined">tune</span> Settings</div>
   </div>
-  <div class="app main-content">
-    <header>
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span class="material-symbols-outlined">account_circle</span>
-          <strong>User Name</strong>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <div class="search-bar">
-            <span class="material-symbols-outlined">search</span>
-            <input type="text" id="searchInput" placeholder="Search projects or folders" oninput="renderProjects()" />
-          </div>
-          <button class="create-btn" onclick="openProjectDialog()">
-            <span class="material-symbols-outlined">add_circle</span>
-            New Project
-          </button>
-        </div>
-      </div>
-      <div class="breadcrumb">Home / Projects</div>
-    </header>
 
-    <main id="project-grid"></main>
+  <div class="app main-content">
+    <main id="project-grid" style="padding: 20px;"></main>
+    <section id="folderDetails"></section>
 
     <dialog id="projectDialog">
       <h2>Create New Project</h2>
@@ -85,10 +54,84 @@
     </dialog>
   </div>
 
-  <!-- Existing JS functions stay unchanged -->
   <script>
-    // All previously defined JS logic remains here
-    // (omitted for brevity in this view)
+    const folders = [];
+
+    function openProjectDialog() {
+      document.getElementById("projectDialog").showModal();
+    }
+
+    function closeProjectDialog() {
+      document.getElementById("projectDialog").close();
+      document.getElementById("projectNameInput").value = "";
+      document.getElementById("projectDescInput").value = "";
+    }
+
+    function createProject() {
+      alert("Project created.");
+      closeProjectDialog();
+    }
+
+    function addFolderToHome() {
+      const name = prompt("Enter folder name:");
+      const description = prompt("Enter folder description:");
+      const owner = prompt("Enter owner name:");
+      const subfolders = parseInt(prompt("How many sub-folders?"), 10) || 0;
+      const fileCount = parseInt(prompt("How many files?"), 10) || 0;
+      const files = [];
+      for (let i = 0; i < fileCount; i++) {
+        files.push(`File_${i + 1}.pdf`);
+      }
+      if (name && description && owner) {
+        folders.push({ name, description, owner, subfolders, files });
+        renderProjects();
+      }
+    }
+
+    function renderProjects() {
+      const container = document.getElementById("project-grid");
+      container.innerHTML = "";
+
+      const folderSection = document.createElement("div");
+      folderSection.classList.add("folder-list");
+
+      folders.forEach(folder => {
+        const div = document.createElement("div");
+        div.className = "folder-item";
+        div.innerHTML = `
+          <div class="folder-title">${folder.name}</div>
+          <div class="folder-meta">${folder.description}</div>
+          <div class="folder-meta">Owner: ${folder.owner}</div>
+          <div class="folder-meta">${folder.subfolders} sub-folder(s), ${folder.files.length} file(s)</div>
+        `;
+        div.addEventListener("click", () => openFolderDetails(folder));
+        folderSection.appendChild(div);
+      });
+
+      container.appendChild(folderSection);
+      document.getElementById("folderDetails").classList.remove("active");
+      document.getElementById("breadcrumb").textContent = "Home / Projects";
+    }
+
+    function openFolderDetails(folder) {
+      const detailSection = document.getElementById("folderDetails");
+      detailSection.classList.add("active");
+      document.getElementById("project-grid").innerHTML = "";
+      document.getElementById("breadcrumb").textContent = `Home / Projects / ${folder.name}`;
+
+      const fileList = folder.files.map(f => `<span class="file-badge"><span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle">description</span> ${f}</span>`).join("");
+
+      detailSection.innerHTML = `
+        <h2>${folder.name}</h2>
+        <p><strong>Description:</strong> ${folder.description}</p>
+        <p><strong>Owner:</strong> ${folder.owner}</p>
+        <p><strong>Sub-folders:</strong> ${folder.subfolders}</p>
+        <p><strong>Files:</strong> ${folder.files.length}</p>
+        <div>${fileList}</div>
+        <br>
+        <button onclick="renderProjects()">Back</button>
+      `;
+    }
   </script>
 </body>
 </html>
