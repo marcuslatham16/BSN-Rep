@@ -119,6 +119,19 @@ dialog button:last-child {
   color: #333;
 }
 
+.input-error {
+  border: 1px solid red;
+  background-color: #ffe6e6;
+}
+
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 4px;
+  display: none;
+}
+
+
 @media (max-width: 768px) {
   .sidebar {
     display: none;

@@ -6,7 +6,7 @@
   <title>Document Repository Beta</title>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link href="style.css" rel="stylesheet" />
-  <style> ... (keep as-is) ... </style>
+
 </head>
 <body>
   <header>
@@ -42,14 +42,21 @@
 
     <dialog id="projectDialog">
       <h2>Create New Project</h2>
-      <input type="text" id="projectNameInput" placeholder="Enter project name" />
+      <div>
+        <input type="text" id="projectNameInput" placeholder="Enter project name" />
+        <div id="nameError" class="error-message">Project name is required.</div>
+      </div>
       <textarea id="projectDescInput" placeholder="Enter repository description"></textarea>
-      <input type="text" id="projectOwnerInput" placeholder="Enter project owner" />
+      <div>
+        <input type="text" id="projectOwnerInput" placeholder="Enter project owner" />
+        <div id="ownerError" class="error-message">Project owner is required.</div>
+      </div>
       <div style="margin-top: 10px;">
         <button onclick="createProject()">Create</button>
         <button onclick="closeProjectDialog()">Cancel</button>
       </div>
     </dialog>
+    
   </div>
 
   <script>
@@ -71,10 +78,13 @@
       const description = document.getElementById("projectDescInput").value.trim();
       const owner = document.getElementById("projectOwnerInput").value.trim();
 
-      if (name && owner) {
-        projects.push({ name, description, owner, folders: [] });
-        renderProjects();
+      if (!name || !owner) {
+        alert("Please enter both a project name and owner.");
+        return;
       }
+
+      projects.push({ name, description, owner, folders: [] });
+      renderProjects();
       closeProjectDialog();
     }
 
@@ -118,7 +128,7 @@
       document.getElementById("project-grid").innerHTML = "";
       document.getElementById("breadcrumb").textContent = `Home / Projects / ${project.name}`;
 
-      const fileList = project.folders.map(folder => {
+        const fileList = (project.folders || []).map(folder => {
         const files = folder.files.map(f => `<span class='file-badge'><span class='material-symbols-outlined'>description</span> ${f}</span>`).join("");
         return `
           <div class='folder-meta'><strong>${folder.folderName}</strong><br/>
