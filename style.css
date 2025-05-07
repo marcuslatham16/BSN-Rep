@@ -250,6 +250,16 @@
     transition: opacity 0.3s ease, transform 0.3s ease, var(--transition);
     position: relative;
   }
+
+  .followed-project-card button {
+    position: absolute;
+    bottom: 20px; /* Adjust padding from bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    height: 40px; /* Define button height */
+    /* Additional button styling */
+    padding: 0 15px;
+  }
   
   .followed-project-card:hover {
     box-shadow: var(--shadow-md);
