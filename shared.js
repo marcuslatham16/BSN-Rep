@@ -32,6 +32,20 @@ document.addEventListener("DOMContentLoaded", function () {
     renderGridView(sortedProjects);
     updateSortIndicators();
   }
+
+  function loadProjects() {
+    const stored = localStorage.getItem("projectRepository");
+    projects = stored ? JSON.parse(stored) : [];
+  }
+  
+  function openProjectDialog() {
+    editingIndex = null;
+    clearForm();
+    document.getElementById("dialogTitle").textContent = "New Project";
+    document.getElementById("saveBtnText").textContent = "Create";
+    document.getElementById("projectDialog").showModal();
+  }
+  
   
   function handleSaveProject() {
     const name = document.getElementById("projectNameInput").value.trim();
