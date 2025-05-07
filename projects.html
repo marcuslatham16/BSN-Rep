@@ -1,1198 +1,303 @@
-/**
- * Opens file upload dialog directly for a specific folder
- * @param {number} projectIndex - The index of the project
- * @param {number} folderIndex - The index of the folder
- */
-function openFileUploadForFolder(projectIndex, folderIndex) {
-  openFileUploadDialog(projectIndex, folderIndex);
-}// Storage key for projects data
-const STORAGE_KEY = "projectRepository";
-let projects = [];
-let editingIndex = null;
-let currentView = "table";
-let currentSort = { column: "name", direction: "asc" };
-
-/**
- * Formats a file size in bytes to a human-readable format
- * @param {number} bytes - The file size in bytes
- * @returns {string} - Human-readable file size
- */
-function formatFileSize(bytes) {
-  if (bytes < 1024) return bytes + ' B';
-  else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-  else return (bytes / 1048576).toFixed(1) + ' MB';
-}
-
-/**
- * Shows a notification message
- * @param {string} message - The message to display
- * @param {string} type - The notification type (success, error, etc.)
- */
-function showNotification(message, type = 'success') {
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  
-  notification.innerHTML = `
-    <span class="material-symbols-outlined">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info'}</span>
-    <span>${message}</span>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Set initial opacity for animation
-  notification.style.opacity = '1';
-  
-  setTimeout(() => {
-    notification.style.opacity = '0';
-    setTimeout(() => {
-      if (document.body.contains(notification)) {
-        document.body.removeChild(notification);
-      }
-    }, 500);
-  }, 3000);
-}
-
-/**
- * Loads projects from localStorage or initializes with sample data if none exists
- */
-function loadProjects() {
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (data) {
-    projects = JSON.parse(data);
-  } else {
-    // Add sample projects for first-time users
-    const now = new Date().toISOString();
-    const yesterday = new Date(Date.now() - 86400000).toISOString();
-    const lastWeek = new Date(Date.now() - 604800000).toISOString();
-    
-    projects = [
-      {
-        name: "Marketing Campaign",
-        description: "Files and assets for Q2 marketing campaign",
-        owner: "Sarah Johnson",
-        dateCreated: now,
-        status: "active",
-        coachingRequired: true,
-        permission: "read",
-        folders: [
-          {
-            folderName: "Social Media",
-            files: ["facebook_ad.png", "instagram_post.psd", "twitter_banner.jpg"]
-          },
-          {
-            folderName: "Print Materials",
-            files: ["brochure.pdf", "flyer.pdf", "poster.ai"]
-          }
-        ]
-      },
-      {
-        name: "Product Launch",
-        description: "Documentation for the new product line",
-        owner: "Michael Chen",
-        dateCreated: yesterday,
-        status: "pending",
-        coachingRequired: false,
-        permission: "download",
-        folders: [
-          {
-            folderName: "Research",
-            files: ["market_analysis.pdf", "competitor_review.docx"]
-          },
-          {
-            folderName: "Specifications",
-            files: ["product_spec.pdf", "technical_details.xlsx"]
-          }
-        ]
-      },
-      {
-        name: "Website Redesign",
-        description: "Assets and documentation for the company website refresh",
-        owner: "Alex Wong",
-        dateCreated: lastWeek,
-        status: "completed",
-        coachingRequired: true,
-        permission: "full",
-        folders: [
-          {
-            folderName: "Mockups",
-            files: ["homepage.png", "about_page.png", "contact_page.png"]
-          },
-          {
-            folderName: "Assets",
-            files: ["logo.svg", "hero_image.jpg", "icons.ai"]
-          },
-          {
-            folderName: "Code",
-            files: ["index.html", "style.css", "script.js"]
-          }
-        ]
-      },
-      {
-        name: "Annual Report 2024",
-        description: "Financial reports and presentation materials",
-        owner: "Emma Rodriguez",
-        dateCreated: lastWeek,
-        status: "archived",
-        coachingRequired: false,
-        permission: "read",
-        folders: [
-          {
-            folderName: "Financial Data",
-            files: ["q1_report.xlsx", "q2_report.xlsx", "q3_report.xlsx", "q4_report.xlsx"]
-          },
-          {
-            folderName: "Presentations",
-            files: ["executive_summary.pptx", "shareholder_presentation.pptx"]
-          }
-        ]
-      }
-    ];
-    saveProjects();
-  }
-}
-
-/**
- * Saves projects to localStorage
- */
-function saveProjects() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-}
-
-/**
- * Opens the project dialog for creating or editing a project
- * @param {boolean} isEdit - Whether we're editing an existing project
- * @param {number|null} index - Index of the project to edit, if applicable
- */
-function openProjectDialog(isEdit = false, index = null) {
-  document.getElementById("projectDialog").showModal();
-  document.getElementById("dialogTitle").textContent = isEdit ? "Edit Project" : "Create New Project";
-  document.getElementById("saveBtnText").textContent = isEdit ? "Save" : "Create";
-
-  if (isEdit && projects[index]) {
-    document.getElementById("projectNameInput").value = projects[index].name;
-    document.getElementById("projectDescInput").value = projects[index].description;
-    document.getElementById("projectOwnerInput").value = projects[index].owner;
-    document.getElementById("projectStatusSelect").value = projects[index].status || 'active';
-    document.getElementById("coachingRequiredInput").checked = projects[index].coachingRequired || false;
-    
-    // Set permissions radio button
-    const permissionValue = projects[index].permission || 'read';
-    document.getElementById(`permission${permissionValue.charAt(0).toUpperCase() + permissionValue.slice(1)}`).checked = true;
-    
-    editingIndex = index;
-  } else {
-    clearForm();
-    editingIndex = null;
-  }
-}
-
-/**
- * Closes the project dialog
- */
-function closeProjectDialog() {
-  document.getElementById("projectDialog").close();
-  clearForm();
-  editingIndex = null;
-}
-
-/**
- * Clears the project form
- */
-function clearForm() {
-  document.getElementById("projectNameInput").value = "";
-  document.getElementById("projectDescInput").value = "";
-  document.getElementById("projectOwnerInput").value = "";
-  document.getElementById("projectStatusSelect").value = "active";
-  document.getElementById("coachingRequiredInput").checked = false;
-  document.getElementById("permissionReadOnly").checked = true;
-  document.getElementById("nameError").style.display = "none";
-  document.getElementById("ownerError").style.display = "none";
-}
-
-/**
- * Handles saving a new or edited project
- */
-function handleSaveProject() {
-  const name = document.getElementById("projectNameInput").value.trim();
-  const desc = document.getElementById("projectDescInput").value.trim();
-  const owner = document.getElementById("projectOwnerInput").value.trim();
-  const status = document.getElementById("projectStatusSelect").value;
-  const coachingRequired = document.getElementById("coachingRequiredInput").checked;
-  
-  // Get selected permission
-  let permission = 'read';
-  if (document.getElementById("permissionDownload").checked) {
-    permission = 'download';
-  } else if (document.getElementById("permissionFull").checked) {
-    permission = 'full';
-  }
-  
-  const nameError = document.getElementById("nameError");
-  const ownerError = document.getElementById("ownerError");
-
-  nameError.style.display = name ? "none" : "block";
-  ownerError.style.display = owner ? "none" : "block";
-
-  if (!name || !owner) return;
-  
-  // Create timestamp for new projects
-  const dateCreated = editingIndex !== null ? projects[editingIndex].dateCreated : new Date().toISOString();
-
-  if (editingIndex !== null) {
-    projects[editingIndex] = { 
-      ...projects[editingIndex], 
-      name, 
-      description: desc, 
-      owner,
-      status,
-      coachingRequired,
-      permission
-    };
-  } else {
-    projects.push({ 
-      name, 
-      description: desc, 
-      owner,
-      dateCreated,
-      status,
-      coachingRequired,
-      permission,
-      following: true, // Set following to true by default for new projects
-      folders: [] 
-    });
-  }
-
-  saveProjects();
-  renderProjects();
-  closeProjectDialog();
-  
-  // Show success notification
-  showNotification(editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
-}
-
-/**
- * Handles deleting a project
- * @param {number} index - Index of the project to delete
- */
-function deleteProject(index) {
-  const projectModal = document.createElement('dialog');
-  projectModal.className = 'confirmation-dialog';
-  
-  projectModal.innerHTML = `
-    <div class="confirmation-content">
-      <span class="material-symbols-outlined warning-icon">warning</span>
-      <h3>Delete Project?</h3>
-      <p>Are you sure you want to delete "${projects[index].name}"? This action cannot be undone.</p>
-      <div class="dialog-actions">
-        <button class="delete-btn" id="confirmDelete">
-          <span class="material-symbols-outlined">delete</span>
-          Delete
-        </button>
-        <button class="secondary-btn" id="cancelDelete">
-          <span class="material-symbols-outlined">close</span>
-          Cancel
-        </button>
-      </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects - Document Repository</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="projects.css" />
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <span class="material-symbols-outlined">folder</span>
+      <h2>DocRepo</h2>
     </div>
-  `;
-  
-  document.body.appendChild(projectModal);
-  projectModal.showModal();
-  
-  document.getElementById('confirmDelete').addEventListener('click', () => {
-    projects.splice(index, 1);
-    saveProjects();
-    renderProjects();
-    projectModal.close();
-    document.body.removeChild(projectModal);
-    
-    // Show success notification
-    showNotification("Project deleted successfully!", "success");
-  });
-  
-  document.getElementById('cancelDelete').addEventListener('click', () => {
-    projectModal.close();
-    document.body.removeChild(projectModal);
-  });
-}
+    <nav>
+      <a href="index.html" class="sidebar-item">
+        <span class="material-symbols-outlined">home</span> 
+        <span>Home</span>
+      </a>
+      <a href="projects.html" class="sidebar-item active">
+        <span class="material-symbols-outlined">workspaces</span> 
+        <span>Projects</span>
+      </a>
+      <div class="sidebar-item">
+        <span class="material-symbols-outlined">area_chart</span> 
+        <span>Reports</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="material-symbols-outlined">tune</span> 
+        <span>Settings</span>
+      </div>
+    </nav>
+  </div>
 
-/**
- * Formats a date string to a more readable format
- * @param {string} dateString - ISO date string
- * @returns {string} - Formatted date
- */
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-}
-
-/**
- * Gets the count of total files in a project
- * @param {Object} project - The project object
- * @returns {number} - Total files count
- */
-function getTotalFilesCount(project) {
-  return project.folders.reduce((sum, folder) => sum + folder.files.length, 0);
-}
-
-/**
- * Sort projects based on the current sort settings
- * @param {Array} projectsList - The projects array to sort
- * @returns {Array} - Sorted projects array
- */
-function sortProjects(projectsList) {
-  const { column, direction } = currentSort;
-  const sortMultiplier = direction === 'asc' ? 1 : -1;
-  
-  return [...projectsList].sort((a, b) => {
-    let valueA, valueB;
-    
-    switch (column) {
-      case 'name':
-        valueA = a.name.toLowerCase();
-        valueB = b.name.toLowerCase();
-        break;
-      case 'owner':
-        valueA = a.owner.toLowerCase();
-        valueB = b.owner.toLowerCase();
-        break;
-      case 'date':
-        valueA = new Date(a.dateCreated).getTime();
-        valueB = new Date(b.dateCreated).getTime();
-        break;
-      case 'status':
-        valueA = a.status;
-        valueB = b.status;
-        break;
-      case 'files':
-        valueA = getTotalFilesCount(a);
-        valueB = getTotalFilesCount(b);
-        break;
-      default:
-        return 0;
-    }
-    
-    if (valueA < valueB) return -1 * sortMultiplier;
-    if (valueA > valueB) return 1 * sortMultiplier;
-    return 0;
-  });
-}
-
-/**
- * Updates sort indicators in the table headers
- */
-function updateSortIndicators() {
-  // Clear all sort indicators
-  document.querySelectorAll('.sortable').forEach(th => {
-    th.classList.remove('sorted-asc', 'sorted-desc');
-  });
-  
-  // Set the active sort indicator
-  const sortableColumn = document.querySelector(`.column-${currentSort.column}`);
-  if (sortableColumn) {
-    sortableColumn.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
-  }
-}
-
-/**
- * Renders projects in the current view (table or grid)
- */
-function renderProjects() {
-  // Sort the projects
-  const sortedProjects = sortProjects(projects);
-  
-  // Update table and grid view
-  renderTableView(sortedProjects);
-  renderGridView(sortedProjects);
-  
-  // Update sort indicators
-  updateSortIndicators();
-}
-
-/**
- * Renders projects in table view
- * @param {Array} projectsList - The projects to render 
- */
-function renderTableView(projectsList) {
-  const tableBody = document.getElementById('projectsTableBody');
-  tableBody.innerHTML = '';
-  
-  projectsList.forEach((project, i) => {
-    const totalFiles = getTotalFilesCount(project);
-    const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
-    
-    // Create permission badge HTML
-    let permissionText = 'Read Only';
-    let permissionIcon = 'visibility';
-    let permissionClass = 'read';
-    
-    if (project.permission === 'download') {
-      permissionText = 'Read & Download';
-      permissionIcon = 'download';
-      permissionClass = 'download';
-    } else if (project.permission === 'full') {
-      permissionText = 'Full Control';
-      permissionIcon = 'edit';
-      permissionClass = 'full';
-    }
-    
-    // Create status badge HTML
-    let statusClass = 'active';
-    if (project.status) {
-      statusClass = project.status;
-    }
-    
-    // Create coaching icon HTML
-    const coachingClass = project.coachingRequired ? '' : 'inactive';
-    
-    // Create follow state HTML
-    const isFollowing = project.following !== false; // Default to true if not set
-    const followClass = isFollowing ? 'following' : '';
-    const followIcon = isFollowing ? 'notifications_active' : 'notifications';
-    
-    const row = document.createElement('tr');
-    row.className = 'project-row';
-    row.dataset.projectIndex = i;
-    row.innerHTML = `
-      <td class="column-name">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <button class="expand-btn" aria-label="Expand project">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-          <span class="material-symbols-outlined" style="color: var(--primary);">folder</span>
-          ${project.name}
-          ${isFollowing ? `
-            <span class="following-badge" title="You are following this project">
-              <span class="material-symbols-outlined">notifications</span>
-            </span>
-          ` : ''}
+  <div class="content-wrapper">
+    <header>
+      <button id="menu-toggle" class="menu-toggle">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      
+      <div class="header-inner">
+        <div class="breadcrumb" id="breadcrumb">
+          <span class="material-symbols-outlined">folder</span>
+          Home / Projects
         </div>
-      </td>
-      <td class="column-owner">${project.owner}</td>
-      <td class="column-date">${formattedDate}</td>
-      <td class="column-status">
-        <span class="status-badge status-${statusClass}">
-          ${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}
-        </span>
-      </td>
-      <td class="column-permission">
-        <span class="permission-badge permission-${permissionClass}">
-          <span class="material-symbols-outlined">${permissionIcon}</span>
-          <span>${permissionText}</span>
-        </span>
-      </td>
-      <td class="column-coaching">
-        <span class="coaching-badge ${coachingClass}" title="${project.coachingRequired ? 'Coaching Required' : 'No Coaching Required'}">
-          <span class="material-symbols-outlined" style="font-size: 16px;">psychology</span>
-        </span>
-      </td>
-      <td class="column-files">${totalFiles} files</td>
-      <td class="column-actions">
-        <div class="row-actions">
-          <button class="row-action-btn follow-btn ${followClass}" onclick="toggleFollowProject(${i}, event)" title="${isFollowing ? 'Unfollow Project' : 'Follow Project'}">
-            <span class="material-symbols-outlined">${followIcon}</span>
-          </button>
-          <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
-            <span class="material-symbols-outlined">create_new_folder</span>
-          </button>
-          <button class="row-action-btn action-upload" onclick="uploadFilesToProject(${i})" title="Upload Files">
-            <span class="material-symbols-outlined">upload_file</span>
-          </button>
-          <button class="row-action-btn action-edit" onclick="openProjectDialog(true, ${i})" title="Edit Project">
-            <span class="material-symbols-outlined">edit</span>
-          </button>
-          <button class="row-action-btn action-delete" onclick="deleteProject(${i})" title="Delete Project">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </div>
-      </td>
-    `;
-    
-    tableBody.appendChild(row);
-    
-    // Create the expandable details row
-    const detailsRow = document.createElement('tr');
-    detailsRow.className = 'details-row';
-    detailsRow.style.display = 'none';
-    
-    // Create the cell that spans all columns
-    const detailsCell = document.createElement('td');
-    detailsCell.colSpan = 8;
-    
-    // Generate content for the details cell
-    let detailsContent = `
-      <div class="project-details">
-        <div class="details-header">
-          <h3>Project Files</h3>
-        </div>
-        <div class="folder-list">
-    `;
-    
-    if (project.folders && project.folders.length > 0) {
-      project.folders.forEach((folder, folderIndex) => {
-        detailsContent += `
-          <div class="folder-item-details">
-            <div class="folder-header-details">
-              <span class="material-symbols-outlined">folder</span>
-              <span class="folder-name">${folder.folderName}</span>
-              <span class="file-count">${folder.files.length} files</span>
-            </div>
-            <div class="file-list">
-        `;
         
-        if (folder.files && folder.files.length > 0) {
-          folder.files.forEach(file => {
-            // Determine file icon based on extension
-            let fileIcon = 'description';
-            const ext = file.split('.').pop().toLowerCase();
-            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-              fileIcon = 'image';
-            } else if (['doc', 'docx'].includes(ext)) {
-              fileIcon = 'article';
-            } else if (['xls', 'xlsx'].includes(ext)) {
-              fileIcon = 'table';
-            } else if (['pdf'].includes(ext)) {
-              fileIcon = 'picture_as_pdf';
-            }
-            
-            detailsContent += `
-              <div class="file-item">
-                <span class="material-symbols-outlined file-icon">${fileIcon}</span>
-                <span class="file-name">${file}</span>
-                <div class="file-actions">
-                  <button title="Preview File" class="file-action-btn">
-                    <span class="material-symbols-outlined">visibility</span>
-                  </button>
-                  <button title="Download File" class="file-action-btn">
-                    <span class="material-symbols-outlined">download</span>
-                  </button>
-                </div>
-              </div>
-            `;
-          });
-        } else {
-          detailsContent += `<div class="empty-files">No files in this folder</div>`;
-        }
-        
-        detailsContent += `
-            </div>
-            <div class="folder-actions-details">
-              <button class="upload-btn-small" onclick="openFileUploadForFolder(${i}, ${folderIndex})">
-                <span class="material-symbols-outlined">upload_file</span>
-                <span>Upload Files</span>
-              </button>
+        <div class="header-actions">
+          <div class="search-bar">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" id="searchInput" placeholder="Search projects and files" oninput="handleSearch()" />
+          </div>
+          <button class="create-btn" onclick="openProjectDialog()" title="Create New Project">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <div class="user-info">
+            <span class="material-symbols-outlined">account_circle</span>
+            <div class="user-details">
+              <strong>User Name</strong>
+              <small>Admin</small>
             </div>
           </div>
-        `;
-      });
-    } else {
-      detailsContent += `
-        <div class="empty-folders">
-          <p>No folders found. Create a new folder to start adding files.</p>
-          <button class="action-btn" onclick="addFolderToProject(${i})">
-            <span class="material-symbols-outlined">create_new_folder</span>
-            <span>Create Folder</span>
-          </button>
-        </div>
-      `;
-    }
-    
-    detailsContent += `
         </div>
       </div>
-    `;
-    
-    detailsCell.innerHTML = detailsContent;
-    detailsRow.appendChild(detailsCell);
-    
-    tableBody.appendChild(detailsRow);
-    
-    // Add event listener to the expand button
-    const expandBtn = row.querySelector('.expand-btn');
-    expandBtn.addEventListener('click', function() {
-      // Toggle the visibility of the details row
-      const detailsRow = this.closest('tr').nextElementSibling;
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="title-section">
+          <h1>Projects</h1>
+          <p class="subtitle">Manage your document repositories</p>
+        </div>
+        
+        <div class="view-controls">
+          <div class="column-selector">
+            <button id="columnSelectorBtn" class="column-selector-btn">
+              <span class="material-symbols-outlined">view_column</span>
+              <span>Columns</span>
+            </button>
+            <div id="columnOptions" class="column-options">
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="name" checked> Project Name
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="owner" checked> Created By
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="date" checked> Date Created
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="status" checked> Status
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="permission" checked> Permission
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="coaching" checked> Coaching
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="files" checked> Files
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" data-view="table">
+              <span class="material-symbols-outlined">table_rows</span>
+            </button>
+            <button class="view-toggle-btn" data-view="grid">
+              <span class="material-symbols-outlined">grid_view</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="view-container table-view" id="viewContainer">
+        <!-- Table View -->
+        <div class="projects-table-container">
+          <table class="projects-table" id="projectsTable">
+            <thead>
+              <tr>
+                <th class="column-name sortable" data-sort="name">Project Name <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-owner sortable" data-sort="owner">Created By <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-date sortable" data-sort="date">Date Created <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-status sortable" data-sort="status">Status <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-permission">Permission</th>
+                <th class="column-coaching">Coaching</th>
+                <th class="column-files sortable" data-sort="files">Files <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projectsTableBody">
+              <!-- Project rows will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Grid View (initially hidden) -->
+        <div class="projects-grid" id="projectsGrid" style="display: none;">
+          <!-- Project cards will be populated here -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Project Dialog -->
+  <dialog id="projectDialog">
+    <h2 id="dialogTitle">New Project</h2>
+    <form id="projectForm">
+      <div class="form-group">
+        <label for="projectNameInput">Project Name</label>
+        <input type="text" id="projectNameInput" placeholder="Enter project name" />
+        <div id="nameError" class="error-message">Project name is required.</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="projectDescInput">Description</label>
+        <textarea id="projectDescInput" placeholder="Enter description"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="projectOwnerInput">Project Owner</label>
+        <input type="text" id="projectOwnerInput" placeholder="Enter owner name" />
+        <div id="ownerError" class="error-message">Project owner is required.</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="projectStatusSelect">Status</label>
+        <select id="projectStatusSelect" class="form-select">
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+          <option value="archived">Archived</option>
+        </select>
+      </div>
+      
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="coachingRequiredInput" />
+          <span>Coaching Required</span>
+        </label>
+      </div>
+      
+      <div class="form-group">
+        <label>Permissions</label>
+        <div class="permissions-options">
+          <label class="checkbox-label">
+            <input type="radio" name="permissions" value="read" id="permissionReadOnly" checked />
+            <span>Read Only</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="radio" name="permissions" value="download" id="permissionDownload" />
+            <span>Read & Download</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="radio" name="permissions" value="full" id="permissionFull" />
+            <span>Full Control</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="saveBtn">
+          <span class="material-symbols-outlined">save</span>
+          <span id="saveBtnText">Create</span>
+        </button>
+        <button type="button" onclick="closeProjectDialog()">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+  
+  <!-- Folder Dialog -->
+  <dialog id="folderDialog">
+    <h2>New Folder</h2>
+    <form id="folderForm">
+      <div class="form-group">
+        <label for="folderNameInput">Folder Name</label>
+        <input type="text" id="folderNameInput" placeholder="Enter folder name" />
+        <div id="folderNameError" class="error-message">Folder name is required.</div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="createFolderBtn">
+          <span class="material-symbols-outlined">create_new_folder</span>
+          <span>Create Folder</span>
+        </button>
+        <button type="button" id="cancelFolderBtn">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+  
+  <!-- File Upload Dialog -->
+  <dialog id="fileUploadDialog">
+    <h2>Upload Files</h2>
+    <form id="fileUploadForm">
+      <div class="form-group">
+        <label for="fileInput">Select Files</label>
+        <div class="file-upload-container">
+          <input type="file" id="fileInput" multiple />
+          <button type="button" class="file-select-btn">
+            <span class="material-symbols-outlined">upload_file</span>
+            <span>Choose Files</span>
+          </button>
+        </div>
+        <div id="selectedFiles" class="selected-files"></div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="uploadFilesBtn">
+          <span class="material-symbols-outlined">cloud_upload</span>
+          <span>Upload</span>
+        </button>
+        <button type="button" id="cancelUploadBtn">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // Helper function to toggle the expandable row
+    function toggleExpandRow(button) {
+      const projectRow = button.closest('tr');
+      const detailsRow = projectRow.nextElementSibling;
       const isExpanded = detailsRow.style.display !== 'none';
       
       // Update the expand button icon
-      const expandIcon = this.querySelector('.material-symbols-outlined');
+      const expandIcon = button.querySelector('.material-symbols-outlined');
       expandIcon.textContent = isExpanded ? 'chevron_right' : 'expand_more';
       
       // Toggle the row display
       detailsRow.style.display = isExpanded ? 'none' : 'table-row';
       
       // Add expanded class to parent row for styling
-      this.closest('tr').classList.toggle('expanded', !isExpanded);
-    });
-  });
-}
-
-/**
- * Toggle following status for a project
- * @param {number} index - Project index
- * @param {Event} event - Click event
- */
-function toggleFollowProject(index, event) {
-  // Prevent event from propagating to parent row expansion
-  event.stopPropagation();
-  
-  // Toggle the following status
-  projects[index].following = !projects[index].following;
-  
-  // Update the UI
-  const followBtn = event.currentTarget;
-  if (projects[index].following) {
-    followBtn.classList.add('following');
-    followBtn.title = 'Unfollow Project';
-    followBtn.querySelector('.material-symbols-outlined').textContent = 'notifications_active';
-    showNotification(`You are now following ${projects[index].name}`, 'success');
-  } else {
-    followBtn.classList.remove('following');
-    followBtn.title = 'Follow Project';
-    followBtn.querySelector('.material-symbols-outlined').textContent = 'notifications';
-    showNotification(`You are no longer following ${projects[index].name}`, 'info');
-  }
-  
-  saveProjects();
-  
-  // Add following badge if needed
-  const projectRow = document.querySelector(`tr[data-project-index="${index}"]`);
-  if (projectRow) {
-    const nameCell = projectRow.querySelector('.column-name div');
-    let followingBadge = nameCell.querySelector('.following-badge');
-    
-    if (projects[index].following) {
-      if (!followingBadge) {
-        followingBadge = document.createElement('span');
-        followingBadge.className = 'following-badge';
-        followingBadge.title = 'You are following this project';
-        followingBadge.innerHTML = '<span class="material-symbols-outlined">notifications</span>';
-        nameCell.appendChild(followingBadge);
-      }
-    } else if (followingBadge) {
-      nameCell.removeChild(followingBadge);
+      projectRow.classList.toggle('expanded', !isExpanded);
     }
-  }
-}
-
-/**
- * Renders projects in grid view
- * @param {Array} projectsList - The projects to render 
- */
-function renderGridView(projectsList) {
-  const gridContainer = document.getElementById('projectsGrid');
-  gridContainer.innerHTML = '';
+  </script>
   
-  projectsList.forEach((project, i) => {
-    const totalFiles = getTotalFilesCount(project);
-    const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
-    
-    // Create permission badge HTML
-    let permissionText = 'Read Only';
-    let permissionIcon = 'visibility';
-    let permissionClass = 'read';
-    
-    if (project.permission === 'download') {
-      permissionText = 'Read & Download';
-      permissionIcon = 'download';
-      permissionClass = 'download';
-    } else if (project.permission === 'full') {
-      permissionText = 'Full Control';
-      permissionIcon = 'edit';
-      permissionClass = 'full';
-    }
-    
-    // Create status badge HTML
-    let statusClass = 'active';
-    if (project.status) {
-      statusClass = project.status;
-    }
-    
-    const card = document.createElement('div');
-    card.className = 'project-card';
-    card.innerHTML = `
-      <div class="card-header">
-        <div class="project-title">
-          <span class="material-symbols-outlined">folder</span>
-          ${project.name}
-        </div>
-        <div class="project-description">${project.description || "No description provided"}</div>
-        <div class="card-badges">
-          <span class="status-badge status-${statusClass}">
-            ${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}
-          </span>
-          ${project.coachingRequired ? `
-            <span class="coaching-badge" title="Coaching Required">
-              <span class="material-symbols-outlined" style="font-size: 16px;">psychology</span>
-            </span>
-          ` : ''}
-        </div>
-      </div>
-      <div class="card-content">
-        <div class="project-info">
-          <div class="info-row">
-            <div class="info-label">Owner:</div>
-            <div class="info-value">${project.owner}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Created:</div>
-            <div class="info-value">${formattedDate}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Folders:</div>
-            <div class="info-value">${project.folders.length}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Files:</div>
-            <div class="info-value">${totalFiles}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Permission:</div>
-            <div class="info-value">
-              <span class="permission-badge permission-${permissionClass}">
-                <span class="material-symbols-outlined">${permissionIcon}</span>
-                <span>${permissionText}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card-footer">
-        <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
-          <span class="material-symbols-outlined">create_new_folder</span>
-        </button>
-        <button class="row-action-btn action-upload" onclick="uploadFilesToProject(${i})" title="Upload Files">
-          <span class="material-symbols-outlined">upload_file</span>
-        </button>
-        <button class="row-action-btn action-edit" onclick="openProjectDialog(true, ${i})" title="Edit Project">
-          <span class="material-symbols-outlined">edit</span>
-        </button>
-        <button class="row-action-btn action-delete" onclick="deleteProject(${i})" title="Delete Project">
-          <span class="material-symbols-outlined">delete</span>
-        </button>
-      </div>
-    `;
-    
-    gridContainer.appendChild(card);
-  });
-}
-
-/**
- * Toggles column visibility in the table
- * @param {string} columnName - The column to toggle
- * @param {boolean} visible - Whether the column should be visible
- */
-function toggleColumnVisibility(columnName, visible) {
-  const columnElements = document.querySelectorAll(`.column-${columnName}`);
-  columnElements.forEach(el => {
-    if (visible) {
-      el.style.display = '';
-    } else {
-      el.style.display = 'none';
-    }
-  });
-}
-
-/**
- * Switches between table and grid view
- * @param {string} view - The view to switch to ('table' or 'grid')
- */
-function switchView(view) {
-  const tableView = document.getElementById('projectsTable').parentElement;
-  const gridView = document.getElementById('projectsGrid');
-  
-  // Update view buttons
-  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  document.querySelector(`.view-toggle-btn[data-view="${view}"]`).classList.add('active');
-  
-  // Show the selected view
-  if (view === 'table') {
-    tableView.style.display = '';
-    gridView.style.display = 'none';
-  } else {
-    tableView.style.display = 'none';
-    gridView.style.display = 'grid';
-  }
-  
-  currentView = view;
-}
-
-/**
- * Handles column sorting when a table header is clicked
- * @param {string} column - The column to sort by
- */
-function handleSort(column) {
-  if (currentSort.column === column) {
-    // Toggle direction if already sorting by this column
-    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-  } else {
-    // Set new sort column with default ascending direction
-    currentSort.column = column;
-    currentSort.direction = 'asc';
-  }
-  
-  renderProjects();
-}
-
-/**
- * Opens a dialog to add a folder to a project
- * @param {number} index - The index of the project to add a folder to
- */
-function addFolderToProject(index) {
-  // Use the predefined dialog instead of creating a new one
-  const folderDialog = document.getElementById('folderDialog');
-  const folderNameInput = document.getElementById('folderNameInput');
-  const folderNameError = document.getElementById('folderNameError');
-  
-  // Clear previous values
-  folderNameInput.value = '';
-  folderNameError.style.display = 'none';
-  
-  // Store the current project index for later use
-  folderDialog.dataset.projectIndex = index;
-  
-  // Show the dialog
-  folderDialog.showModal();
-}
-
-/**
- * Handles creating a new folder after the name is entered
- */
-function handleCreateFolder() {
-  const folderDialog = document.getElementById('folderDialog');
-  const folderNameInput = document.getElementById('folderNameInput');
-  const folderNameError = document.getElementById('folderNameError');
-  
-  const folderName = folderNameInput.value.trim();
-  const projectIndex = parseInt(folderDialog.dataset.projectIndex);
-  
-  if (!folderName) {
-    folderNameError.style.display = 'block';
-    return;
-  }
-  
-  // Create a new folder with an empty files array
-  projects[projectIndex].folders.push({
-    folderName,
-    files: []
-  });
-  
-  saveProjects();
-  renderProjects();
-  
-  // Close the dialog
-  folderDialog.close();
-  
-  // Prompt to upload files to the newly created folder
-  openFileUploadDialog(projectIndex, projects[projectIndex].folders.length - 1);
-  
-  // Show success notification
-  showNotification(`Folder "${folderName}" created successfully!`, 'success');
-}
-
-/**
- * Function to handle uploading files to a project
- * @param {number} projectIndex - The index of the project to upload files to
- */
-function uploadFilesToProject(projectIndex) {
-  // Check if the project has any folders
-  if (projects[projectIndex].folders.length === 0) {
-    // If no folders exist, prompt to create one first
-    const confirmDialog = document.createElement('dialog');
-    confirmDialog.className = 'confirmation-dialog';
-    
-    confirmDialog.innerHTML = `
-      <div class="confirmation-content">
-        <span class="material-symbols-outlined">info</span>
-        <h3>No Folders Available</h3>
-        <p>You need to create a folder first before uploading files.</p>
-        <div class="dialog-actions">
-          <button id="createFolderNowBtn" class="primary-btn">
-            <span class="material-symbols-outlined">create_new_folder</span>
-            Create Folder
-          </button>
-          <button id="cancelUploadBtn" class="secondary-btn">
-            <span class="material-symbols-outlined">close</span>
-            Cancel
-          </button>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(confirmDialog);
-    confirmDialog.showModal();
-    
-    document.getElementById('createFolderNowBtn').addEventListener('click', () => {
-      confirmDialog.close();
-      document.body.removeChild(confirmDialog);
-      addFolderToProject(projectIndex);
-    });
-    
-    document.getElementById('cancelUploadBtn').addEventListener('click', () => {
-      confirmDialog.close();
-      document.body.removeChild(confirmDialog);
-    });
-    
-    return;
-  }
-  
-  // If project has folders, show folder selection dialog
-  const folderSelectionDialog = document.createElement('dialog');
-  folderSelectionDialog.className = 'folder-selection-dialog';
-  
-  let folderOptions = '';
-  projects[projectIndex].folders.forEach((folder, idx) => {
-    folderOptions += `<option value="${idx}">${folder.folderName}</option>`;
-  });
-  
-  folderSelectionDialog.innerHTML = `
-    <h2>Select Folder</h2>
-    <div class="form-group">
-      <label for="folderSelectInput">Choose a folder to upload files to:</label>
-      <select id="folderSelectInput" class="folder-select">
-        ${folderOptions}
-      </select>
-    </div>
-    <div class="dialog-actions">
-      <button id="confirmFolderBtn" class="primary-btn">
-        <span class="material-symbols-outlined">check</span>
-        Continue
-      </button>
-      <button id="cancelSelectionBtn" class="secondary-btn">
-        <span class="material-symbols-outlined">close</span>
-        Cancel
-      </button>
-    </div>
-  `;
-  
-  document.body.appendChild(folderSelectionDialog);
-  folderSelectionDialog.showModal();
-  
-  document.getElementById('confirmFolderBtn').addEventListener('click', () => {
-    const folderIndex = document.getElementById('folderSelectInput').value;
-    folderSelectionDialog.close();
-    document.body.removeChild(folderSelectionDialog);
-    
-    // Open the file upload dialog for the selected folder
-    openFileUploadDialog(projectIndex, folderIndex);
-  });
-  
-  document.getElementById('cancelSelectionBtn').addEventListener('click', () => {
-    folderSelectionDialog.close();
-    document.body.removeChild(folderSelectionDialog);
-  });
-}
-
-/**
- * Opens the file upload dialog for a specific folder
- * @param {number} projectIndex - The index of the project
- * @param {number} folderIndex - The index of the folder
- */
-function openFileUploadDialog(projectIndex, folderIndex) {
-  const fileUploadDialog = document.getElementById('fileUploadDialog');
-  const selectedFilesDiv = document.getElementById('selectedFiles');
-  const fileInput = document.getElementById('fileInput');
-  
-  // Clear previous selections
-  fileInput.value = '';
-  selectedFilesDiv.innerHTML = '';
-  
-  // Store the project and folder indices for later use
-  fileUploadDialog.dataset.projectIndex = projectIndex;
-  fileUploadDialog.dataset.folderIndex = folderIndex;
-  
-  // Update dialog title to show which folder we're uploading to
-  const folderName = projects[projectIndex].folders[folderIndex].folderName;
-  fileUploadDialog.querySelector('h2').textContent = `Upload Files to "${folderName}"`;
-  
-  // Show the dialog
-  fileUploadDialog.showModal();
-}
-
-/**
- * Handles displaying selected files in the file upload dialog
- */
-function handleFileSelection() {
-  const fileInput = document.getElementById('fileInput');
-  const selectedFilesDiv = document.getElementById('selectedFiles');
-  
-  selectedFilesDiv.innerHTML = '';
-  
-  if (fileInput.files.length > 0) {
-    for (let i = 0; i < fileInput.files.length; i++) {
-      const file = fileInput.files[i];
-      const fileItem = document.createElement('div');
-      fileItem.className = 'selected-file-item';
-      
-      // Determine file icon based on extension
-      let fileIcon = 'description';
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-        fileIcon = 'image';
-      } else if (['doc', 'docx'].includes(ext)) {
-        fileIcon = 'article';
-      } else if (['xls', 'xlsx'].includes(ext)) {
-        fileIcon = 'table';
-      } else if (['pdf'].includes(ext)) {
-        fileIcon = 'picture_as_pdf';
-      }
-      
-      fileItem.innerHTML = `
-        <span class="material-symbols-outlined">${fileIcon}</span>
-        <span class="file-name">${file.name}</span>
-        <span class="file-size">${formatFileSize(file.size)}</span>
-      `;
-      
-      selectedFilesDiv.appendChild(fileItem);
-    }
-  }
-}
-
-/**
- * Handles the file upload process after files are selected
- */
-function handleFileUpload() {
-  const fileUploadDialog = document.getElementById('fileUploadDialog');
-  const fileInput = document.getElementById('fileInput');
-  
-  const projectIndex = parseInt(fileUploadDialog.dataset.projectIndex);
-  const folderIndex = parseInt(fileUploadDialog.dataset.folderIndex);
-  
-  if (fileInput.files.length > 0) {
-    // In a real application, we would upload the files to a server here
-    // For this demo, we'll just add the filenames to the project data
-    
-    for (let i = 0; i < fileInput.files.length; i++) {
-      projects[projectIndex].folders[folderIndex].files.push(fileInput.files[i].name);
-    }
-    
-    saveProjects();
-    renderProjects();
-    
-    // Show success notification
-    showNotification('Files uploaded successfully!', 'success');
-  }
-  
-  // Close the dialog
-  fileUploadDialog.close();
-}
-
-/**
- * Handles the search functionality
- */
-function handleSearch() {
-  const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-  
-  // Filter projects based on search query
-  const filteredProjects = projects.filter(project => {
-    // Search in project name and description
-    if (
-      project.name.toLowerCase().includes(searchQuery) ||
-      (project.description && project.description.toLowerCase().includes(searchQuery)) ||
-      project.owner.toLowerCase().includes(searchQuery)
-    ) {
-      return true;
-    }
-    
-    // Search in folder names
-    const folderMatch = project.folders.some(folder => 
-      folder.folderName.toLowerCase().includes(searchQuery)
-    );
-    
-    if (folderMatch) return true;
-    
-    // Search in file names
-    const fileMatch = project.folders.some(folder => 
-      folder.files.some(file => file.toLowerCase().includes(searchQuery))
-    );
-    
-    return fileMatch;
-  });
-  
-  // Render filtered projects
-  renderTableView(filteredProjects);
-  renderGridView(filteredProjects);
-}
-
-// Initialize application when DOM is loaded
-document.addEventListener("DOMContentLoaded", function() {
-  // Load projects data
-  loadProjects();
-  
-  // Render projects
-  renderProjects();
-  
-  // Set up column selector
-  const columnSelectorBtn = document.getElementById('columnSelectorBtn');
-  const columnOptions = document.getElementById('columnOptions');
-  
-  columnSelectorBtn.addEventListener('click', function() {
-    columnOptions.classList.toggle('show');
-  });
-  
-  // Hide column options when clicking outside
-  document.addEventListener('click', function(event) {
-    if (!columnSelectorBtn.contains(event.target) && !columnOptions.contains(event.target)) {
-      columnOptions.classList.remove('show');
-    }
-  });
-  
-  // Set up column visibility toggles
-  document.querySelectorAll('.column-option input').forEach(checkbox => {
-    checkbox.addEventListener('change', function() {
-      const column = this.dataset.column;
-      toggleColumnVisibility(column, this.checked);
-    });
-  });
-  
-  // Set up view toggle buttons
-  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const view = this.dataset.view;
-      switchView(view);
-    });
-  });
-  
-  // Set up sortable columns
-  document.querySelectorAll('.sortable').forEach(th => {
-    th.addEventListener('click', function() {
-      const column = this.dataset.sort;
-      handleSort(column);
-    });
-  });
-  
-  // Project dialog event listeners
-  document.getElementById("saveBtn").addEventListener("click", handleSaveProject);
-  
-  // Folder dialog event listeners
-  document.getElementById("createFolderBtn").addEventListener("click", handleCreateFolder);
-  document.getElementById("cancelFolderBtn").addEventListener("click", function() {
-    document.getElementById("folderDialog").close();
-  });
-  
-  // File upload dialog event listeners
-  document.getElementById("fileInput").addEventListener("change", handleFileSelection);
-  
-  document.querySelector(".file-select-btn").addEventListener("click", function() {
-    document.getElementById("fileInput").click();
-  });
-  
-  document.getElementById("uploadFilesBtn").addEventListener("click", handleFileUpload);
-  
-  document.getElementById("cancelUploadBtn").addEventListener("click", function() {
-    document.getElementById("fileUploadDialog").close();
-  });
-  
-  // Mobile menu toggle
-  if (document.getElementById('menu-toggle')) {
-    document.getElementById('menu-toggle').addEventListener('click', function() {
-      document.getElementById('sidebar').classList.toggle('open');
-    });
-  }
-});
+  <script src="projects.js"></script>
+</body>
+</html>
