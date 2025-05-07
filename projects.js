@@ -862,6 +862,43 @@ function addFolderToProject(index) {
 }
 
 /**
+ * Handles creation of a new folder from the folder dialog
+ */
+function handleCreateFolder() {
+  const folderDialog = document.getElementById('folderDialog');
+  const folderNameInput = document.getElementById('folderNameInput');
+  const folderNameError = document.getElementById('folderNameError');
+  const projectIndex = parseInt(folderDialog.dataset.projectIndex);
+
+  const name = folderNameInput.value.trim();
+  if (!name) {
+    folderNameError.textContent = 'Folder name is required.';
+    folderNameError.style.display = 'block';
+    return;
+  }
+
+  const project = projects[projectIndex];
+  if (!project.folders) {
+    project.folders = [];
+  }
+
+  // Push new folder
+  project.folders.push({
+    folderName: name,
+    files: []
+  });
+
+  // Save and update UI
+  saveProjects();
+  renderProjects();
+  folderDialog.close();
+
+  // Optional: show success message
+  showNotification(`Folder "${name}" added to "${project.name}"`, 'success');
+}
+
+
+/**
  * Function to handle uploading files to a project
  * @param {number} projectIndex - The index of the project to upload files to
  */
