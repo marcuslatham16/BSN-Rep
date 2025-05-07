@@ -42,13 +42,13 @@
       <div class="header-inner">
         <div class="breadcrumb" id="breadcrumb">
           <span class="material-symbols-outlined">folder</span>
-          Home / Projects
+          Home
         </div>
         
         <div class="header-actions">
           <div class="search-bar">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" id="searchInput" placeholder="Search projects" oninput="renderProjects()" />
+            <input type="text" id="searchInput" placeholder="Search projects" oninput="handleSearch()" />
           </div>
           <button class="create-btn" onclick="openProjectDialog()" title="Create New Project">
             <span class="material-symbols-outlined">add</span>
@@ -65,14 +65,34 @@
     </header>
 
     <main class="main-content">
-      <div class="content-header">
-        <h1>Projects</h1>
-        <p class="subtitle">Manage your document repositories</p>
-      </div>
-      
-      <div id="projects-container">
-        <div id="project-grid"></div>
-      </div>
+      <!-- What's New Section -->
+      <section class="whats-new-section">
+        <div class="section-header">
+          <div>
+            <h2>What's New</h2>
+            <p class="subtitle">Recent updates and activities</p>
+          </div>
+        </div>
+        
+        <div id="searchResultsSection" class="search-results-section" style="display: none;">
+          <div class="section-header">
+            <h3>Search Results</h3>
+            <button id="clearSearchBtn" class="clear-search-btn">
+              <span class="material-symbols-outlined">close</span>
+              Clear Search
+            </button>
+          </div>
+          <div id="searchResultsContainer" class="search-results-container"></div>
+        </div>
+        
+        <div class="section-header">
+          <h3>Followed Projects</h3>
+        </div>
+        
+        <div id="followedProjectsContainer">
+          <!-- Followed projects will be loaded here via JavaScript -->
+        </div>
+      </section>
     </main>
   </div>
 
@@ -95,6 +115,16 @@
         <label for="projectOwnerInput">Project Owner</label>
         <input type="text" id="projectOwnerInput" placeholder="Enter owner name" />
         <div id="ownerError" class="error-message">Project owner is required.</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="projectStatusSelect">Status</label>
+        <select id="projectStatusSelect" class="form-select">
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+          <option value="archived">Archived</option>
+        </select>
       </div>
       
       <div class="form-group checkbox-group">
@@ -213,7 +243,7 @@
       notification.className = `notification ${type}`;
       
       notification.innerHTML = `
-        <span class="material-symbols-outlined">${type === 'success' ? 'check_circle' : 'info'}</span>
+        <span class="material-symbols-outlined">${type === 'success' ? 'check_circle' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : 'info'}</span>
         <span>${message}</span>
       `;
       
@@ -241,17 +271,28 @@
         projects = JSON.parse(data);
       } else {
         // Add sample projects for first-time users
-        const today = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+        const today = new Date().toISOString();
+        const yesterday = new Date(Date.now() - 86400000).toISOString();
+        const lastWeek = new Date(Date.now() - 604800000).toISOString();
+        
         projects = [
           {
             name: "Marketing Campaign",
             description: "Files and assets for Q2 marketing campaign",
             owner: "Sarah Johnson",
             dateCreated: today,
+            status: "active",
+            coachingRequired: true,
+            permission: "read",
+            following: true,
             folders: [
               {
                 folderName: "Social Media",
                 files: ["facebook_ad.png", "instagram_post.psd", "twitter_banner.jpg"]
+              },
+              {
+                folderName: "Print Materials",
+                files: ["brochure.pdf", "flyer.pdf", "poster.ai"]
               }
             ]
           },
@@ -259,11 +300,43 @@
             name: "Product Launch",
             description: "Documentation for the new product line",
             owner: "Michael Chen",
-            dateCreated: today,
+            dateCreated: yesterday,
+            status: "pending",
+            coachingRequired: false,
+            permission: "download",
+            following: false,
             folders: [
               {
                 folderName: "Research",
                 files: ["market_analysis.pdf", "competitor_review.docx"]
+              },
+              {
+                folderName: "Specifications",
+                files: ["product_spec.pdf", "technical_details.xlsx"]
+              }
+            ]
+          },
+          {
+            name: "Website Redesign",
+            description: "Assets and documentation for the company website refresh",
+            owner: "Alex Wong",
+            dateCreated: lastWeek,
+            status: "completed",
+            coachingRequired: true,
+            permission: "full",
+            following: true,
+            folders: [
+              {
+                folderName: "Mockups",
+                files: ["homepage.png", "about_page.png", "contact_page.png"]
+              },
+              {
+                folderName: "Assets",
+                files: ["logo.svg", "hero_image.jpg", "icons.ai"]
+              },
+              {
+                folderName: "Code",
+                files: ["index.html", "style.css", "script.js"]
               }
             ]
           }
@@ -280,6 +353,20 @@
     }
 
     /**
+     * Formats a date string to a more readable format
+     * @param {string} dateString - ISO date string
+     * @returns {string} - Formatted date
+     */
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+
+    /**
      * Opens the project dialog for creating or editing a project
      * @param {boolean} isEdit - Whether we're editing an existing project
      * @param {number|null} index - Index of the project to edit, if applicable
@@ -293,6 +380,7 @@
         document.getElementById("projectNameInput").value = projects[index].name;
         document.getElementById("projectDescInput").value = projects[index].description;
         document.getElementById("projectOwnerInput").value = projects[index].owner;
+        document.getElementById("projectStatusSelect").value = projects[index].status || 'active';
         document.getElementById("coachingRequiredInput").checked = projects[index].coachingRequired || false;
         
         // Set permissions radio button
@@ -322,6 +410,7 @@
       document.getElementById("projectNameInput").value = "";
       document.getElementById("projectDescInput").value = "";
       document.getElementById("projectOwnerInput").value = "";
+      document.getElementById("projectStatusSelect").value = "active";
       document.getElementById("coachingRequiredInput").checked = false;
       document.getElementById("permissionReadOnly").checked = true;
       document.getElementById("nameError").style.display = "none";
@@ -335,6 +424,7 @@
       const name = document.getElementById("projectNameInput").value.trim();
       const desc = document.getElementById("projectDescInput").value.trim();
       const owner = document.getElementById("projectOwnerInput").value.trim();
+      const status = document.getElementById("projectStatusSelect").value;
       const coachingRequired = document.getElementById("coachingRequiredInput").checked;
       
       // Get selected permission
@@ -354,7 +444,7 @@
       if (!name || !owner) return;
       
       // Create timestamp for new projects
-      const dateCreated = new Date().toISOString();
+      const dateCreated = editingIndex !== null ? projects[editingIndex].dateCreated : new Date().toISOString();
 
       if (editingIndex !== null) {
         projects[editingIndex] = { 
@@ -362,6 +452,7 @@
           name, 
           description: desc, 
           owner,
+          status,
           coachingRequired,
           permission
         };
@@ -371,202 +462,81 @@
           description: desc, 
           owner,
           dateCreated,
+          status,
           coachingRequired,
           permission,
+          following: true, // Set following to true by default for new projects
           folders: [] 
         });
       }
 
       saveProjects();
-      renderProjects();
+      renderFollowedProjects();
       closeProjectDialog();
       
-      // Show success notification
-      showNotification(editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
+      // Show success notification with appropriate type for coaching projects
+      const notificationType = coachingRequired ? 'warning' : 'success';
+      showNotification(
+        editingIndex !== null 
+          ? `Project updated successfully${coachingRequired ? ' (Coaching Required)' : ''}!` 
+          : `Project created successfully${coachingRequired ? ' (Coaching Required)' : ''}!`, 
+        notificationType
+      );
     }
 
     /**
-     * Handles deleting a project
-     * @param {number} index - Index of the project to delete
+     * Toggle following status for a project
+     * @param {number} index - Project index
+     * @param {Event} event - Click event
      */
-    function deleteProject(index) {
-      const projectModal = document.createElement('dialog');
-      projectModal.className = 'confirmation-dialog';
-      
-      projectModal.innerHTML = `
-        <div class="confirmation-content">
-          <span class="material-symbols-outlined warning-icon">warning</span>
-          <h3>Delete Project?</h3>
-          <p>Are you sure you want to delete "${projects[index].name}"? This action cannot be undone.</p>
-          <div class="dialog-actions">
-            <button class="delete-btn" id="confirmDelete">
-              <span class="material-symbols-outlined">delete</span>
-              Delete
-            </button>
-            <button class="secondary-btn" id="cancelDelete">
-              <span class="material-symbols-outlined">close</span>
-              Cancel
-            </button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(projectModal);
-      projectModal.showModal();
-      
-      document.getElementById('confirmDelete').addEventListener('click', () => {
-        projects.splice(index, 1);
-        saveProjects();
-        renderProjects();
-        projectModal.close();
-        document.body.removeChild(projectModal);
-        
-        // Show success notification
-        showNotification("Project deleted successfully!", "success");
-      });
-      
-      document.getElementById('cancelDelete').addEventListener('click', () => {
-        projectModal.close();
-        document.body.removeChild(projectModal);
-      });
-    }
-    
-    /**
-     * Formats a date string to a more readable format
-     * @param {string} dateString - ISO date string
-     * @returns {string} - Formatted date
-     */
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }
-
-    /**
-     * Renders all projects in the grid
-     */
-    function renderProjects() {
-      const container = document.getElementById("project-grid");
-      const filter = document.getElementById("searchInput").value.toLowerCase();
-      container.innerHTML = "";
-
-      const visible = projects.filter(p => p.name.toLowerCase().includes(filter));
-
-      if (!visible.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <span class="material-symbols-outlined">folder_off</span>
-            <h3>No projects found</h3>
-            <p>Try adjusting your search or create a new project.</p>
-          </div>
-        `;
-        return;
+    function toggleFollowProject(index, event) {
+      // Prevent event from propagating
+      if (event) {
+        event.stopPropagation();
       }
-
-      visible.forEach((project, i) => {
-        const totalFiles = project.folders.reduce((sum, folder) => sum + folder.files.length, 0);
-        const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
+      
+      // Toggle the following status
+      projects[index].following = !projects[index].following;
+      
+      if (projects[index].following) {
+        showNotification(`You are now following ${projects[index].name}`, 'success');
+      } else {
+        showNotification(`You are no longer following ${projects[index].name}`, 'info');
         
-        // Get permission badge
-        let permissionBadge = '';
-        if (project.permission) {
-          let permissionIcon = 'visibility';
-          let permissionText = 'Read Only';
+        // If we're on the home page, remove the project card
+        const projectCard = document.querySelector(`.followed-project-card[data-project-index="${index}"]`);
+        if (projectCard) {
+          // Use animation to fade out the card
+          projectCard.style.opacity = '0';
+          projectCard.style.transform = 'scale(0.9)';
           
-          if (project.permission === 'download') {
-            permissionIcon = 'download';
-            permissionText = 'Read & Download';
-          } else if (project.permission === 'full') {
-            permissionIcon = 'edit';
-            permissionText = 'Full Control';
-          }
-          
-          permissionBadge = `
-            <div class="permission-badge permission-${project.permission}">
-              <span class="material-symbols-outlined">${permissionIcon}</span>
-              <span>${permissionText}</span>
-            </div>
-          `;
+          // After animation completes, remove the element
+          setTimeout(() => {
+            projectCard.remove();
+            
+            // Check if there are no more followed projects
+            const followedProjectsContainer = document.getElementById('followedProjectsContainer');
+            if (followedProjectsContainer && followedProjectsContainer.children.length === 0) {
+              // Show empty state
+              followedProjectsContainer.innerHTML = `
+                <div class="empty-state">
+                  <span class="material-symbols-outlined">notifications_off</span>
+                  <h3>No Followed Projects</h3>
+                  <p>Projects you follow will appear here for quick access.</p>
+                  <a href="projects.html" class="view-projects-btn">
+                    <span class="material-symbols-outlined">workspaces</span>
+                    <span>Browse Projects</span>
+                  </a>
+                </div>
+              `;
+            }
+          }, 300);
         }
-        
-        const div = document.createElement("div");
-        div.className = "folder-item";
-        div.innerHTML = `
-          <div class="folder-header">
-            <span class="material-symbols-outlined">folder</span>
-            <div class="folder-title">
-              ${project.name}
-              ${project.coachingRequired ? 
-                `<span class="coaching-badge">
-                  <span class="material-symbols-outlined">psychology</span>
-                  <span>Coaching</span>
-                </span>` : ''
-              }
-            </div>
-          </div>
-          <div class="folder-description">${project.description || "No description provided"}</div>
-          <div class="folder-stats">
-            <div class="stat">
-              <span class="material-symbols-outlined">person</span>
-              <span>${project.owner}</span>
-            </div>
-            <div class="stat">
-              <span class="material-symbols-outlined">calendar_today</span>
-              <span>Created: ${formattedDate}</span>
-            </div>
-            <div class="stat">
-              <span class="material-symbols-outlined">folder</span>
-              <span>${project.folders.length} folders</span>
-            </div>
-            <div class="stat">
-              <span class="material-symbols-outlined">description</span>
-              <span>${totalFiles} files</span>
-            </div>
-          </div>
-          ${permissionBadge}
-          <div class="folder-actions">
-            <button onclick="addFolderToProject(${i})" title="Add Folder">
-              <span class="material-symbols-outlined">create_new_folder</span>
-            </button>
-            <button onclick="uploadFilesToProject(${i})" title="Upload Files">
-              <span class="material-symbols-outlined">upload_file</span>
-            </button>
-            <button class="edit-btn" onclick="openProjectDialog(true, ${i})" title="Edit Project">
-              <span class="material-symbols-outlined">edit</span>
-            </button>
-            <button class="delete-btn" onclick="deleteProject(${i})" title="Delete Project">
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
+      }
+      
+      saveProjects();
     }
 
-    /**
-     * Opens a dialog to add a folder to a project
-     * @param {number} index - The index of the project to add a folder to
-     */
-    function addFolderToProject(index) {
-      // Use the predefined dialog instead of creating a new one
-      const folderDialog = document.getElementById('folderDialog');
-      const folderNameInput = document.getElementById('folderNameInput');
-      const folderNameError = document.getElementById('folderNameError');
-      
-      // Clear previous values
-      folderNameInput.value = '';
-      folderNameError.style.display = 'none';
-      
-      // Store the current project index for later use
-      folderDialog.dataset.projectIndex = index;
-      
-      // Show the dialog
-      folderDialog.showModal();
-    }
-    
     /**
      * Handles creating a new folder after the name is entered
      */
@@ -590,135 +560,13 @@
       });
       
       saveProjects();
-      renderProjects();
+      renderFollowedProjects();
       
       // Close the dialog
       folderDialog.close();
       
-      // Prompt to upload files to the newly created folder
-      openFileUploadDialog(projectIndex, projects[projectIndex].folders.length - 1);
-      
       // Show success notification
       showNotification(`Folder "${folderName}" created successfully!`, 'success');
-    }
-    
-    /**
-     * Function to handle uploading files to a project
-     * @param {number} projectIndex - The index of the project to upload files to
-     */
-    function uploadFilesToProject(projectIndex) {
-      // Check if the project has any folders
-      if (projects[projectIndex].folders.length === 0) {
-        // If no folders exist, prompt to create one first
-        const confirmDialog = document.createElement('dialog');
-        confirmDialog.className = 'confirmation-dialog';
-        
-        confirmDialog.innerHTML = `
-          <div class="confirmation-content">
-            <span class="material-symbols-outlined">info</span>
-            <h3>No Folders Available</h3>
-            <p>You need to create a folder first before uploading files.</p>
-            <div class="dialog-actions">
-              <button id="createFolderNowBtn" class="primary-btn">
-                <span class="material-symbols-outlined">create_new_folder</span>
-                Create Folder
-              </button>
-              <button id="cancelUploadBtn" class="secondary-btn">
-                <span class="material-symbols-outlined">close</span>
-                Cancel
-              </button>
-            </div>
-          </div>
-        `;
-        
-        document.body.appendChild(confirmDialog);
-        confirmDialog.showModal();
-        
-        document.getElementById('createFolderNowBtn').addEventListener('click', () => {
-          confirmDialog.close();
-          document.body.removeChild(confirmDialog);
-          addFolderToProject(projectIndex);
-        });
-        
-        document.getElementById('cancelUploadBtn').addEventListener('click', () => {
-          confirmDialog.close();
-          document.body.removeChild(confirmDialog);
-        });
-        
-        return;
-      }
-      
-      // If project has folders, show folder selection dialog
-      const folderSelectionDialog = document.createElement('dialog');
-      folderSelectionDialog.className = 'folder-selection-dialog';
-      
-      let folderOptions = '';
-      projects[projectIndex].folders.forEach((folder, idx) => {
-        folderOptions += `<option value="${idx}">${folder.folderName}</option>`;
-      });
-      
-      folderSelectionDialog.innerHTML = `
-        <h2>Select Folder</h2>
-        <div class="form-group">
-          <label for="folderSelectInput">Choose a folder to upload files to:</label>
-          <select id="folderSelectInput" class="folder-select">
-            ${folderOptions}
-          </select>
-        </div>
-        <div class="dialog-actions">
-          <button id="confirmFolderBtn" class="primary-btn">
-            <span class="material-symbols-outlined">check</span>
-            Continue
-          </button>
-          <button id="cancelSelectionBtn" class="secondary-btn">
-            <span class="material-symbols-outlined">close</span>
-            Cancel
-          </button>
-        </div>
-      `;
-      
-      document.body.appendChild(folderSelectionDialog);
-      folderSelectionDialog.showModal();
-      
-      document.getElementById('confirmFolderBtn').addEventListener('click', () => {
-        const folderIndex = document.getElementById('folderSelectInput').value;
-        folderSelectionDialog.close();
-        document.body.removeChild(folderSelectionDialog);
-        
-        // Open the file upload dialog for the selected folder
-        openFileUploadDialog(projectIndex, folderIndex);
-      });
-      
-      document.getElementById('cancelSelectionBtn').addEventListener('click', () => {
-        folderSelectionDialog.close();
-        document.body.removeChild(folderSelectionDialog);
-      });
-    }
-    
-    /**
-     * Opens the file upload dialog for a specific folder
-     * @param {number} projectIndex - The index of the project
-     * @param {number} folderIndex - The index of the folder
-     */
-    function openFileUploadDialog(projectIndex, folderIndex) {
-      const fileUploadDialog = document.getElementById('fileUploadDialog');
-      const selectedFilesDiv = document.getElementById('selectedFiles');
-      const fileInput = document.getElementById('fileInput');
-      
-      // Clear previous selections
-      fileInput.value = '';
-      selectedFilesDiv.innerHTML = '';
-      
-      // Store the project and folder indices for later use
-      fileUploadDialog.dataset.projectIndex = projectIndex;
-      fileUploadDialog.dataset.folderIndex = folderIndex;
-      
-      // Update dialog title to show which folder we're uploading to
-      const folderName = projects[projectIndex].folders[folderIndex].folderName;
-      fileUploadDialog.querySelector('h2').textContent = `Upload Files to "${folderName}"`;
-      
-      // Show the dialog
-      fileUploadDialog.showModal();
     }
     
     /**
@@ -759,36 +607,225 @@
         }
       }
     }
-    
+
     /**
-     * Handles the file upload process after files are selected
+     * Renders the followed projects on the home page
      */
-    function handleFileUpload() {
-      const fileUploadDialog = document.getElementById('fileUploadDialog');
-      const fileInput = document.getElementById('fileInput');
+    function renderFollowedProjects() {
+      const container = document.getElementById('followedProjectsContainer');
+      if (!container) return; // Exit if we're not on the home page
       
-      const projectIndex = parseInt(fileUploadDialog.dataset.projectIndex);
-      const folderIndex = parseInt(fileUploadDialog.dataset.folderIndex);
+      container.innerHTML = '';
       
-      if (fileInput.files.length > 0) {
-        // In a real application, we would upload the files to a server here
-        // For this demo, we'll just add the filenames to the project data
-        
-        for (let i = 0; i < fileInput.files.length; i++) {
-          projects[projectIndex].folders[folderIndex].files.push(fileInput.files[i].name);
-        }
-        
-        saveProjects();
-        renderProjects();
-        
-        // Show success notification
-        showNotification('Files uploaded successfully!', 'success');
+      // Filter only followed projects
+      const followedProjects = projects.filter(project => project.following !== false);
+      
+      if (followedProjects.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <span class="material-symbols-outlined">notifications_off</span>
+            <h3>No Followed Projects</h3>
+            <p>Projects you follow will appear here for quick access.</p>
+            <a href="projects.html" class="view-projects-btn">
+              <span class="material-symbols-outlined">workspaces</span>
+              <span>Browse Projects</span>
+            </a>
+          </div>
+        `;
+        return;
       }
       
-      // Close the dialog
-      fileUploadDialog.close();
+      followedProjects.forEach((project, i) => {
+        // Find the index in the original projects array
+        const originalIndex = projects.findIndex(p => p.name === project.name);
+        
+        const card = document.createElement('div');
+        card.className = 'followed-project-card';
+        card.dataset.projectIndex = originalIndex; // Add the data attribute
+
+        // Get number of files
+        const totalFiles = project.folders.reduce((sum, folder) => sum + folder.files.length, 0);
+        
+        // Format date
+        const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
+        
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="project-title">
+              <span class="material-symbols-outlined">folder</span>
+              ${project.name}
+            </div>
+            <div class="project-description">${project.description || 'No description provided'}</div>
+            <div class="following-badge" title="You are following this project">
+              <span class="material-symbols-outlined">notifications</span>
+            </div>
+            ${project.coachingRequired ? `
+              <div class="coaching-info">
+                <span class="coaching-badge">
+                  <span class="material-symbols-outlined">psychology</span>
+                  <span>Coaching Required</span>
+                </span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="card-content">
+            <div class="project-details">
+              <div class="detail-item">
+                <span class="material-symbols-outlined">person</span>
+                <span>${project.owner}</span>
+              </div>
+              <div class="detail-item">
+                <span class="material-symbols-outlined">event</span>
+                <span>Created: ${formattedDate}</span>
+              </div>
+              <div class="detail-item">
+                <span class="material-symbols-outlined">folder</span>
+                <span>${project.folders.length} folders</span>
+              </div>
+              <div class="detail-item">
+                <span class="material-symbols-outlined">description</span>
+                <span>${totalFiles} files</span>
+              </div>
+            </div>
+            <div class="recent-activity">
+              <h4>Recent Activity</h4>
+              <div class="activity-item">
+                <span class="material-symbols-outlined">upload_file</span>
+                <span>Files were added to this project</span>
+                <span class="activity-time">2 days ago</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="unfollow-btn" onclick="toggleFollowProject(${originalIndex}, event)" title="Unfollow Project">
+              <span class="material-symbols-outlined">notifications_off</span>
+              <span>Unfollow</span>
+            </button>
+            <a href="projects.html" class="view-project-btn">
+              <span class="material-symbols-outlined">visibility</span>
+              <span>View Project</span>
+            </a>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
     }
-    
+
+    /**
+     * Handles the search functionality
+     */
+    function handleSearch() {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const searchResultsSection = document.getElementById('searchResultsSection');
+      const searchResultsContainer = document.getElementById('searchResultsContainer');
+      
+      // If search query is empty, hide search results
+      if (!searchQuery) {
+        searchResultsSection.style.display = 'none';
+        return;
+      }
+      
+      // Show search results section
+      searchResultsSection.style.display = 'block';
+      searchResultsContainer.innerHTML = '';
+      
+      // Filter projects based on search query
+      const filteredProjects = projects.filter(project => {
+        // Search in project name and description
+        if (
+          project.name.toLowerCase().includes(searchQuery) ||
+          (project.description && project.description.toLowerCase().includes(searchQuery)) ||
+          project.owner.toLowerCase().includes(searchQuery)
+        ) {
+          return true;
+        }
+        
+        // Search in folder names
+        const folderMatch = project.folders.some(folder => 
+          folder.folderName.toLowerCase().includes(searchQuery)
+        );
+        
+        if (folderMatch) return true;
+        
+        // Search in file names
+        const fileMatch = project.folders.some(folder => 
+          folder.files.some(file => file.toLowerCase().includes(searchQuery))
+        );
+        
+        return fileMatch;
+      });
+      
+      // If no results found
+      if (filteredProjects.length === 0) {
+        searchResultsContainer.innerHTML = `
+          <div class="empty-state">
+            <span class="material-symbols-outlined">search_off</span>
+            <h3>No Results Found</h3>
+            <p>We couldn't find any projects matching "${searchQuery}".</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Render search results
+      filteredProjects.forEach(project => {
+        // Find matching files if any
+        const matchingFiles = [];
+        project.folders.forEach(folder => {
+          folder.files.forEach(file => {
+            if (file.toLowerCase().includes(searchQuery)) {
+              matchingFiles.push({
+                fileName: file,
+                folderName: folder.folderName
+              });
+            }
+          });
+        });
+        
+        // Create search result card
+        const resultCard = document.createElement('div');
+        resultCard.className = 'search-result-card';
+        resultCard.innerHTML = `
+          <div class="search-result-header">
+            <span class="material-symbols-outlined">folder</span>
+            <div class="result-project-name">${project.name}</div>
+            ${project.following ? `
+              <div class="following-badge-small" title="You are following this project">
+                <span class="material-symbols-outlined">notifications</span>
+              </div>
+            ` : ''}
+          </div>
+          <div class="search-result-content">
+            <div class="result-description">${project.description || 'No description provided'}</div>
+            ${matchingFiles.length > 0 ? `
+              <div class="matching-files">
+                <div class="matching-files-header">Matching Files</div>
+                <ul class="matching-files-list">
+                  ${matchingFiles.slice(0, 3).map(file => `
+                    <li>
+                      <span class="folder-indicator">${file.folderName}:</span> ${file.fileName}
+                    </li>
+                  `).join('')}
+                  ${matchingFiles.length > 3 ? `
+                    <li class="more-files">+ ${matchingFiles.length - 3} more files</li>
+                  ` : ''}
+                </ul>
+              </div>
+            ` : ''}
+          </div>
+          <div class="search-result-footer">
+            <a href="projects.html" class="view-result-btn">
+              <span class="material-symbols-outlined">visibility</span>
+              <span>View Project</span>
+            </a>
+          </div>
+        `;
+        
+        searchResultsContainer.appendChild(resultCard);
+      });
+    }
+
     // Toggle sidebar on mobile
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
@@ -798,7 +835,13 @@
     // Initialize application when DOM is loaded
     document.addEventListener("DOMContentLoaded", function() {
       loadProjects();
-      renderProjects();
+      renderFollowedProjects();
+      
+      // Clear search button functionality
+      document.getElementById('clearSearchBtn').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchResultsSection').style.display = 'none';
+      });
       
       // Project dialog event listeners
       document.getElementById("saveBtn").addEventListener("click", handleSaveProject);
@@ -814,12 +857,6 @@
       
       document.querySelector(".file-select-btn").addEventListener("click", function() {
         document.getElementById("fileInput").click();
-      });
-      
-      document.getElementById("uploadFilesBtn").addEventListener("click", handleFileUpload);
-      
-      document.getElementById("cancelUploadBtn").addEventListener("click", function() {
-        document.getElementById("fileUploadDialog").close();
       });
       
       // Mobile menu toggle
