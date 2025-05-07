@@ -177,6 +177,7 @@ header {
   border-radius: 0;
   color: rgba(255, 255, 255, 0.8);
   transition: var(--transition);
+  text-decoration: none;
 }
 
 .sidebar-item:hover {
