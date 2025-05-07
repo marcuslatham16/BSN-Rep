@@ -299,7 +299,31 @@
   </script>
   
   <script src="shared.js"></script>
-  <script src="projects.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    loadProjects();
+    renderProjects();
 
+    document.getElementById("saveBtn").addEventListener("click", handleSaveProject);
+    document.getElementById("createFolderBtn").addEventListener("click", handleCreateFolder);
+    document.getElementById("cancelFolderBtn").addEventListener("click", () => {
+      document.getElementById("folderDialog").close();
+    });
+
+    document.getElementById("fileInput").addEventListener("change", handleFileSelection);
+    document.querySelector(".file-select-btn").addEventListener("click", () => {
+      document.getElementById("fileInput").click();
+    });
+
+    document.getElementById("uploadFilesBtn").addEventListener("click", handleFileUpload);
+    document.getElementById("cancelUploadBtn").addEventListener("click", () => {
+      document.getElementById("fileUploadDialog").close();
+    });
+
+    document.getElementById("menu-toggle")?.addEventListener("click", toggleSidebar);
+  });
+</script>
+
+  
 </body>
 </html>
