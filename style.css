@@ -23,378 +23,6 @@
   --transition: all 0.2s ease-in-out;
 }
 
-.search-results-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-
-
-/* Search Results Cards */
-.search-result-card {
-  background-color: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  transition: var(--transition);
-}
-
-.search-result-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.search-result-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.result-project-name {
-  font-weight: 600;
-  color: var(--primary);
-  flex: 1;
-}
-
-.following-badge-small {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-}
-
-.following-badge-small .material-symbols-outlined {
-  font-size: 12px;
-}
-
-.search-result-content {
-  padding: 12px 16px;
-}
-
-.result-description {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: var(--gray-text);
-}
-
-.matching-files {
-  margin-top: 12px;
-}
-
-.matching-files-header {
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.matching-files-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  background-color: var(--light-bg);
-  border-radius: var(--radius-md);
-}
-
-.matching-files-list li {
-  padding: 8px 12px;
-  font-size: 13px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.matching-files-list li:last-child {
-  border-bottom: none;
-}
-
-.folder-indicator {
-  color: var(--primary);
-  font-weight: 500;
-}
-
-.search-result-footer {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.view-result-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: var(--transition);
-}
-
-.view-result-btn:hover {
-  background-color: var(--primary-hover);
-}
-
-.view-projects-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  cursor: pointer;
-  text-decoration: none;
-  transition: var(--transition);
-  margin-top: 16px;
-}
-
-.view-projects-btn:hover {
-  background-color: var(--primary-hover);
-}
-
-.empty-state {
-  padding: 32px;
-  text-align: center;
-  background-color: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  grid-column: 1 / -1;
-}
-
-.empty-state .material-symbols-outlined {
-  font-size: 48px;
-  color: #d0d0d0;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
-  color: var(--dark-text);
-}
-
-.empty-state p {
-  margin: 0;
-  color: var(--gray-text);
-  max-width: 400px;
-}
-
-/* Coaching badge for What's New section */
-.coaching-info {
-  margin-top: 16px;
-}
-
-.coaching-info .coaching-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background-color: rgba(0, 75, 152, 0.1);
-  color: var(--primary);
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-}
-
-.coaching-info .coaching-badge .material-symbols-outlined {
-  font-size: 16px;
-}/* What's New Section */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.section-header h2 {
-  color: var(--primary);
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.section-header .subtitle {
-  margin: 8px 0 0 0;
-  color: var(--gray-text);
-  font-size: 14px;
-}
-
-#followedProjectsContainer {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-}
-
-/* Followed Project Cards */
-.followed-project-card {
-  background-color: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  transition: opacity 0.3s ease, transform 0.3s ease, var(--transition);
-  position: relative;
-}
-
-.followed-project-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.card-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-color);
-  position: relative;
-}
-
-.project-title {
-  display: flex;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--primary);
-  margin-bottom: 8px;
-  gap: 8px;
-}
-
-.following-badge {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--primary);
-  color: white;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-}
-
-.following-badge .material-symbols-outlined {
-  font-size: 18px;
-}
-
-.project-description {
-  color: var(--gray-text);
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-.card-content {
-  padding: 16px;
-}
-
-.project-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--gray-text);
-}
-
-.card-footer {
-  padding: 16px;
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  justify-content: flex-end;
-}
-
-.view-project-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: var(--primary);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.view-project-btn:hover {
-  background-color: var(--primary-hover);
-}
-
-/* Search Results */
-.search-results-section {
-  margin-bottom: 32px;
-  background-color: #f0f4f8;
-  padding: 24px;
-  border-radius: var(--radius-md);
-  border-left: 4px solid var(--primary);
-}
-
-.clear-search-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: var(--light-bg);
-  border: 1px solid var(--border-color);
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.clear-search-btn:hover {
-  background-color: #e5e5e5;
-}
-
-.search-results-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-}:root {
-  --primary: #004b98;
-  --primary-hover: #00387a;
-  --secondary: #e60000;
-  --secondary-hover: #c30000;
-  --dark-text: #333333;
-  --light-text: #ffffff;
-  --gray-text: #5a6474;
-  --light-bg: #f5f5f5;
-  --border-color: #e2e8f0;
-  --success: #00a76f;
-  --success-hover: #008c58;
-  --warning: #f59e0b;
-  --warning-hover: #d97706;
-  --danger: #e60000;
-  --danger-hover: #c30000;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --transition: all 0.2s ease-in-out;
-}
-
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -818,6 +446,41 @@ dialog button:last-child:hover {
   display: none;
 }
 
+/* Project Dialog specific spacing adjustments */
+#projectDialog .form-group {
+  margin-bottom: 12px; /* Reduced from default 16px */
+}
+
+#projectDialog label {
+  margin-bottom: 4px; /* Reduced space between label and input */
+  display: block;
+}
+
+#projectDialog .checkbox-group {
+  margin-bottom: 8px; /* Even smaller margin for checkbox groups */
+}
+
+#projectDialog .permissions-options {
+  margin-top: 4px; /* Reduced space after the "Permissions" label */
+  padding: 8px; /* Reduced from 12px */
+}
+
+#projectDialog .permissions-options .checkbox-label {
+  margin-bottom: 2px; /* Minimal space between radio options */
+}
+
+#projectDialog .dialog-actions {
+  margin-top: 16px; /* Keep reasonable space before action buttons */
+  padding-top: 8px; /* Small padding before buttons */
+}
+
+/* Make error messages more compact */
+#projectDialog .error-message {
+  margin-top: 2px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
 /* File upload styles */
 .file-upload-container {
   display: flex;
@@ -1124,6 +787,196 @@ input[type="file"] {
   font-weight: 600;
   margin-bottom: 8px;
   color: var(--dark-text);
+}
+
+/* What's New Section */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.section-header h2 {
+  color: var(--primary);
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.section-header .subtitle {
+  margin: 8px 0 0 0;
+  color: var(--gray-text);
+  font-size: 14px;
+}
+
+#followedProjectsContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Followed Project Cards */
+.followed-project-card {
+  background-color: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease, var(--transition);
+  position: relative;
+}
+
+.followed-project-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.project-title {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+/* Updated following badge to use notifications icon and orange color */
+.following-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--warning);
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.following-badge:hover {
+  background-color: var(--warning-hover);
+  transform: scale(1.05);
+}
+
+.following-badge .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.project-description {
+  color: var(--gray-text);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.project-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--gray-text);
+}
+
+.card-footer {
+  padding: 10px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Updated to only have View Project button */
+.view-project-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+  justify-content: center;
+}
+
+.view-project-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Search Results */
+.search-results-section {
+  margin-bottom: 32px;
+  background-color: #f0f4f8;
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary);
+}
+
+.clear-search-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--light-bg);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.clear-search-btn:hover {
+  background-color: #e5e5e5;
+}
+
+.search-results-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* Coaching info styling */
+.coaching-info {
+  margin-top: 16px;
+}
+
+.coaching-info .coaching-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: rgba(0, 75, 152, 0.1);
+  color: var(--primary);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.coaching-info .coaching-badge .material-symbols-outlined {
+  font-size: 16px;
 }
 
 @media (max-width: 1024px) {

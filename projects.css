@@ -526,6 +526,56 @@
   .action-delete {
     background-color: var(--danger);
   }
+
+  /* Updated dialog actions for better button height control */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  gap: 12px;
+}
+
+.dialog-actions button {
+  border: none;
+  padding: 0 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px; /* Default height */
+  height: auto; /* Allow height to be controlled from specific instances */
+  line-height: 1;
+}
+
+/* Allow customizing button height via inline style or additional classes */
+.dialog-actions button.btn-sm {
+  min-height: 20px;
+}
+
+.dialog-actions button.btn-lg {
+  min-height: 40px;
+}
+
+.dialog-actions button:first-child {
+  background-color: var(--primary);
+  color: white;
+}
+
+.dialog-actions button:first-child:hover {
+  background-color: var(--primary-hover);
+}
+
+.dialog-actions button:last-child {
+  background-color: var(--light-bg);
+  color: var(--dark-text);
+}
+
+.dialog-actions button:last-child:hover {
+  background-color: var(--border-color);
+}
   
   /* Grid View */
   .projects-grid {
