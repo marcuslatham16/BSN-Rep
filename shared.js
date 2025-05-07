@@ -1,5 +1,3 @@
-// shared.js - Complete version with all project logic
-
 let projects = [];
 let editingIndex = null;
 
@@ -56,6 +54,23 @@ function renderProjects() {
   updateSortIndicators();
 }
 
+function renderFollowedProjects() {
+  const container = document.getElementById("followedProjectsSection");
+  if (!container) return;
+  container.innerHTML = "";
+  const followed = projects.filter(p => p.following);
+  if (followed.length === 0) {
+    container.innerHTML = "<p>No followed projects.</p>";
+    return;
+  }
+  followed.forEach(project => {
+    const card = document.createElement("div");
+    card.className = "followed-project-card";
+    card.innerHTML = `<h4>${project.name}</h4><p>${project.description}</p>`;
+    container.appendChild(card);
+  });
+}
+
 function renderTableView(projectList) {
   const container = document.getElementById("tableView");
   if (!container) return;
@@ -81,7 +96,6 @@ function renderGridView(projectList) {
 }
 
 function updateSortIndicators() {
-  // Optional: implement UI sort arrows
   console.log("Sort indicators updated");
 }
 
