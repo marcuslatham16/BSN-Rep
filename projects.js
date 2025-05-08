@@ -1047,9 +1047,8 @@ function handleFileUpload() {
   fileUploadDialog.close();
 }
 
-/**
- * Handles the search functionality
- */
+//Handles the search functionality
+ 
 function handleSearch() {
   const searchQuery = document.getElementById('searchInput').value.toLowerCase();
   
@@ -1082,6 +1081,28 @@ function handleSearch() {
   // Render filtered projects
   renderTableView(filteredProjects);
   renderGridView(filteredProjects);
+}
+
+function handleFileSelection() {
+  const fileInput = document.getElementById("fileInput");
+  const selectedFilesDiv = document.getElementById("selectedFiles");
+
+  selectedFilesDiv.innerHTML = "";
+
+  for (let i = 0; i < fileInput.files.length; i++) {
+    const file = fileInput.files[i];
+
+    const item = document.createElement("div");
+    item.className = "selected-file-item";
+
+    item.innerHTML = `
+      <span class="material-symbols-outlined">description</span>
+      <span class="file-name">${file.name}</span>
+      <span class="file-size">${(file.size / 1024).toFixed(1)} KB</span>
+    `;
+
+    selectedFilesDiv.appendChild(item);
+  }
 }
 
 // Initialize application when DOM is loaded

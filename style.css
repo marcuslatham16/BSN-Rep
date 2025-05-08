@@ -243,24 +243,17 @@
   
   /* Followed Project Cards */
   .followed-project-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* optional, good for spacing */
     background-color: white;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     transition: opacity 0.3s ease, transform 0.3s ease, var(--transition);
-    position: relative;
+    height: 100%;
   }
-
-  .followed-project-card button {
-    position: absolute;
-    bottom: 20px; /* Adjust padding from bottom */
-    left: 50%;
-    transform: translateX(-50%);
-    height: 40px; /* Define button height */
-    /* Additional button styling */
-    padding: 0 15px;
-  }
-  
+    
   .followed-project-card:hover {
     box-shadow: var(--shadow-md);
     transform: translateY(-2px);
@@ -326,10 +319,11 @@
   }
   
   .card-footer {
+    margin-top: auto; /* pushes this footer to the bottom of the card */
     padding: 16px;
     border-top: 1px solid var(--border-color);
     display: flex;
-    justify-content: flex-end;
+    justify-content: center; /* center the button horizontally */
   }
   
   .view-project-btn {
