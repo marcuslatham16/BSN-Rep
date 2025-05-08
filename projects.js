@@ -180,7 +180,14 @@ function openProjectDialog(isEdit = false, index = null) {
     
     // Set permissions radio button
     const permissionValue = projects[index].permission || 'read';
-    const permissionInput = document.getElementById(`permission${permissionValue.charAt(0).toUpperCase() + permissionValue.slice(1)}`);
+
+    console.log(permissionValue, "permissionValue");
+
+    const elem = `permission${permissionValue.charAt(0).toUpperCase() + permissionValue.slice(1)}`
+
+    console.log(elem, "elem");
+
+    const permissionInput = document.getElementById(elem);
   if (permissionInput) {
     permissionInput.checked = true;
   } else {
