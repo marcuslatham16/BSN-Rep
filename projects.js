@@ -865,7 +865,6 @@ function addFolderToProject(index) {
 
 
 //creation of a new folder from the folder dialog
-
 function handleCreateFolder() {
   const folderDialog = document.getElementById('folderDialog');
   const folderNameInput = document.getElementById('folderNameInput');
@@ -879,7 +878,7 @@ function handleCreateFolder() {
     return;
   }
 
-  const project = projects[Index];
+  const project = projects[projectIndex];
   if (!project.folders) {
     project.folders = [];
   }
@@ -890,7 +889,6 @@ function handleCreateFolder() {
     files: []
   });
 
-  // Save and update UI
   saveProjects();
   renderProjects();
   folderDialog.close();
@@ -898,11 +896,8 @@ function handleCreateFolder() {
   showNotification(`Folder "${name}" added to "${project.name}"`, 'success');
 }
 
+//Function to handle uploading files to a project
 
-/**
- * Function to handle uploading files to a project
- * @param {number} projectIndex - The index of the project to upload files to
- */
 function uploadFilesToProject(projectIndex) {
   // Check if the project has any folders
   if (projects[projectIndex].folders.length === 0) {
