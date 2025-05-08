@@ -257,6 +257,7 @@ function handleSaveProject() {
 
   console.log("editingIndex =", window.editingIndex);
   if (window.window.editingIndex !== null && projects[window.editingIndex]) {
+    console.log('updating')
     projects[window.editingIndex] = { 
       ...projects[window.editingIndex], 
       name, 
@@ -267,6 +268,7 @@ function handleSaveProject() {
       permission
     };
   } else {
+    console.log('new')
     projects.push({ 
       name, 
       description: desc, 
