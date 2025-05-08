@@ -33,13 +33,23 @@
     border-bottom: 1px solid var(--border-color);
   }
   
-  .project-details {
-    padding: 16px;
+  .details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    border-bottom: 1px solid #ddd;
   }
   
-  .details-header {
-    margin-bottom: 16px;
+  .project-info {
+    font-weight: bold;
   }
+  
+  .folder-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
   
   .details-header h3 {
     margin: 0;

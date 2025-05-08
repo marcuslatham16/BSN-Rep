@@ -524,8 +524,14 @@ function renderTableView(projectsList) {
     let detailsContent = `
       <div class="project-details">
         <div class="details-header">
-          <h3>Project Files</h3>
-        </div>
+      <div class="project-info">
+        <h3>Project Files</h3>
+      </div>
+      <div class="folder-actions">
+        <button onclick="addFolderToProject(${index})">Add Folder</button>
+      </div>
+    </div>
+
         <div class="folder-list">
     `;
     
