@@ -858,8 +858,7 @@ function addFolderToProject(index) {
   newCreateBtn.parentNode.replaceChild(oldBtn, newCreateBtn);
 
   // Add new listener tied to the correct project index
-  oldBtn.addEventListener('click', () => handleCreateFolder(index));
-
+  oldBtn.addEventListener('click', handleCreateFolder);
   folderDialog.showModal();
 }
 
