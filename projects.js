@@ -528,7 +528,7 @@ function renderTableView(projectsList) {
         <h3>Project Files</h3>
       </div>
       <div class="folder-actions">
-        <button onclick="addFolderToProject(${index})">Add Folder</button>
+        <button onclick="addFolderToProject(${i})">Add Folder</button>
       </div>
     </div>
 
