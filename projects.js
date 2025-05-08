@@ -170,11 +170,23 @@ function openProjectDialog(isEdit = false, index = null) {
     document.getElementById("projectDescInput").value = projects[index].description;
     document.getElementById("projectOwnerInput").value = projects[index].owner;
     document.getElementById("projectStatusSelect").value = projects[index].status || 'active';
-    document.getElementById("coachingRequiredInput").checked = projects[index].coachingRequired || false;
+    const coachingInput = document.getElementById("coachingRequiredInput");
+  if (coachingInput) {
+    coachingInput.checked = projects[index].coachingRequired || false;
+  } else {
+    console.warn("Coaching input not found.");
+  }
+
     
     // Set permissions radio button
     const permissionValue = projects[index].permission || 'read';
-    document.getElementById(`permission${permissionValue.charAt(0).toUpperCase() + permissionValue.slice(1)}`).checked = true;
+    const permissionInput = document.getElementById(`permission${permissionValue.charAt(0).toUpperCase() + permissionValue.slice(1)}`);
+  if (permissionInput) {
+    permissionInput.checked = true;
+  } else {
+    console.warn("Permission input not found for:", permissionValue);
+  }
+
     
     editingIndex = index;
     window.editingIndex = index;
