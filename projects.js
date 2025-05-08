@@ -66,7 +66,7 @@ function loadProjects() {
         dateCreated: now,
         status: "active",
         coachingRequired: true,
-        permission: "read",
+        permission: "readOnly",
         following: true,
         folders: [
           {
