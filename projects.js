@@ -177,6 +177,7 @@ function openProjectDialog(isEdit = false, index = null) {
     document.getElementById(`permission${permissionValue.charAt(0).toUpperCase() + permissionValue.slice(1)}`).checked = true;
     
     editingIndex = index;
+    window.editingIndex = index;
   } else {
     clearForm();
     editingIndex = null;
@@ -235,9 +236,10 @@ function handleSaveProject() {
   // Create timestamp for new projects
   const dateCreated = editingIndex !== null ? projects[editingIndex].dateCreated : new Date().toISOString();
 
-  if (editingIndex !== null) {
-    projects[editingIndex] = { 
-      ...projects[editingIndex], 
+  console.log("editingIndex =", window.editingIndex);
+  if (window.window.editingIndex !== null && projects[window.editingIndex]) {
+    projects[window.editingIndex] = { 
+      ...projects[window.editingIndex], 
       name, 
       description: desc, 
       owner,
@@ -264,7 +266,7 @@ function handleSaveProject() {
   closeProjectDialog();
   
   // Show success notification
-  showNotification(editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
+  showNotification(window.editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
 }
 
 /**
