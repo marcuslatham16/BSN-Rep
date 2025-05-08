@@ -380,7 +380,7 @@ function sortProjects(projectsList) {
 }
 
 /**
- * Updates sort indicators in the table headers
+ * Updates sort indicators in the table headers below
  */
 function updateSortIndicators() {
   // Clear all sort indicators
