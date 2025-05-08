@@ -851,6 +851,7 @@ function addFolderToProject(index) {
 
   folderNameInput.value = '';
   folderNameError.style.display = 'none';
+  folderDialog.dataset.projectIndex = index;
 
   // Ensure any old listeners are removed
   const newCreateBtn = folderDialog.querySelector('#createFolderBtn');
@@ -868,7 +869,18 @@ function handleCreateFolder() {
   const folderDialog = document.getElementById('folderDialog');
   const folderNameInput = document.getElementById('folderNameInput');
   const folderNameError = document.getElementById('folderNameError');
-  const projectIndex = parseInt(folderDialog.dataset.projectIndex);
+  const rawIndex = folderDialog.dataset.projectIndex;
+
+  const projectIndex = parseInt(rawIndex);
+  console.log("Creating folder for project index:", projectIndex, "from raw:", rawIndex);
+  console.log("Projects array length:", projects.length);
+
+  if (isNaN(projectIndex) || !projects[projectIndex]) {
+    console.error("Invalid project index:", projectIndex);
+    showNotification("Unable to find the selected project.", "error");
+    folderDialog.close();
+    return;
+  }
 
   const name = folderNameInput.value.trim();
   if (!name) {
@@ -882,7 +894,6 @@ function handleCreateFolder() {
     project.folders = [];
   }
 
-  // Push new folder
   project.folders.push({
     folderName: name,
     files: []
@@ -894,6 +905,7 @@ function handleCreateFolder() {
 
   showNotification(`Folder "${name}" added to "${project.name}"`, 'success');
 }
+
 
 //Function to handle uploading files to a project
 

@@ -207,11 +207,11 @@
   }
   
   .follow-btn.following {
-    background-color: var(--primary);
+    background-color: #F59E0B;
   }
   
   .follow-btn.following:hover {
-    background-color: var(--primary-hover);
+    background-color: #F49611;
   }
   
   .following-badge {
