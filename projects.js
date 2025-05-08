@@ -476,7 +476,12 @@ function renderTableView(projectsList) {
     
     const row = document.createElement('tr');
     row.className = 'project-row';
-    row.dataset.projectIndex = i;
+    row.dataset.projectIndex = projects.findIndex(p =>
+      p.name === project.name &&
+      p.owner === project.owner &&
+      p.dateCreated === project.dateCreated
+    );
+    
     row.innerHTML = `
       <td class="column-name">
         <div style="display: flex; align-items: center; gap: 8px;">
