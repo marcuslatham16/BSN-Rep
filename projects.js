@@ -639,21 +639,25 @@ function renderTableView(projectsList) {
   });
 }
 
-/**
- * Toggle following status for a project
- * @param {number} index - Project index
- * @param {Event} event - Click event
- */
-function toggleFollowProject(_index, event) {
-  const row = event.currentTarget.closest('tr');
-  const index = parseInt(row.dataset.projectIndex);
 
+ //Toggle following status for a project
+
+ function toggleFollowProject(_index, event) {
   // Prevent event from propagating to parent row expansion
   event.stopPropagation();
-  
+
+  // Get the closest <tr> and read its data-project-index
+  const row = event.currentTarget.closest('tr');
+  const index = parseInt(row?.dataset.projectIndex);
+
+  if (isNaN(index)) {
+    console.warn('Could not determine project index from clicked row.');
+    return;
+  }
+
   // Toggle the following status
   projects[index].following = !projects[index].following;
-  
+
   // Update the UI
   const followBtn = event.currentTarget;
   if (projects[index].following) {
@@ -667,15 +671,15 @@ function toggleFollowProject(_index, event) {
     followBtn.querySelector('.material-symbols-outlined').textContent = 'notifications';
     showNotification(`You are no longer following ${projects[index].name}`, 'info');
   }
-  
+
   saveProjects();
-  
-  // Add following badge if needed
+
+  // Update the notification badge in the project name cell
   const projectRow = document.querySelector(`tr[data-project-index="${index}"]`);
   if (projectRow) {
     const nameCell = projectRow.querySelector('.column-name div');
     let followingBadge = nameCell.querySelector('.following-badge');
-    
+
     if (projects[index].following) {
       if (!followingBadge) {
         followingBadge = document.createElement('span');
