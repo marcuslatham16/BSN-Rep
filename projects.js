@@ -256,7 +256,7 @@ function handleSaveProject() {
   const dateCreated = editingIndex !== null ? projects[editingIndex].dateCreated : new Date().toISOString();
 
   console.log("editingIndex =", window.editingIndex);
-  if (window.window.editingIndex !== null && projects[window.editingIndex]) {
+  if (window.editingIndex !== null && projects[window.editingIndex]) {
     console.log('updating')
     projects[window.editingIndex] = { 
       ...projects[window.editingIndex], 
