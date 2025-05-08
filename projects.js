@@ -644,7 +644,10 @@ function renderTableView(projectsList) {
  * @param {number} index - Project index
  * @param {Event} event - Click event
  */
-function toggleFollowProject(index, event) {
+function toggleFollowProject(_index, event) {
+  const row = event.currentTarget.closest('tr');
+  const index = parseInt(row.dataset.projectIndex);
+
   // Prevent event from propagating to parent row expansion
   event.stopPropagation();
   
