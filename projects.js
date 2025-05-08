@@ -893,6 +893,8 @@ function handleCreateFolder() {
   renderProjects();
   folderDialog.close();
 
+
+
   // Optional: show success message
   showNotification(`Folder "${name}" added to "${project.name}"`, 'success');
 }
