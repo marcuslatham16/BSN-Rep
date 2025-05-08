@@ -845,25 +845,27 @@ function handleSort(column) {
  * @param {number} index - The index of the project to add a folder to
  */
 function addFolderToProject(index) {
-  // Use the predefined dialog instead of creating a new one
   const folderDialog = document.getElementById('folderDialog');
   const folderNameInput = document.getElementById('folderNameInput');
   const folderNameError = document.getElementById('folderNameError');
-  
-  // Clear previous values
+
   folderNameInput.value = '';
   folderNameError.style.display = 'none';
-  
-  // Store the current project index for later use
-  folderDialog.dataset.projectIndex = index;
-  
-  // Show the dialog
+
+  // Ensure any old listeners are removed
+  const newCreateBtn = folderDialog.querySelector('#createFolderBtn');
+  const oldBtn = newCreateBtn.cloneNode(true);
+  newCreateBtn.parentNode.replaceChild(oldBtn, newCreateBtn);
+
+  // Add new listener tied to the correct project index
+  oldBtn.addEventListener('click', () => handleCreateFolder(index));
+
   folderDialog.showModal();
 }
 
-/**
- * Handles creation of a new folder from the folder dialog
- */
+
+//creation of a new folder from the folder dialog
+
 function handleCreateFolder() {
   const folderDialog = document.getElementById('folderDialog');
   const folderNameInput = document.getElementById('folderNameInput');
@@ -877,7 +879,7 @@ function handleCreateFolder() {
     return;
   }
 
-  const project = projects[projectIndex];
+  const project = projects[Index];
   if (!project.folders) {
     project.folders = [];
   }
@@ -893,9 +895,6 @@ function handleCreateFolder() {
   renderProjects();
   folderDialog.close();
 
-
-
-  // Optional: show success message
   showNotification(`Folder "${name}" added to "${project.name}"`, 'success');
 }
 
