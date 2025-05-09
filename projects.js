@@ -315,48 +315,7 @@ function deleteProject(index) {
       </div>
     </div>
   `;
-
-  function deleteFolder(projectIndex, folderIndex) {    
-  const folder = projects[projectIndex].folders[folderIndex];
-  const folderModal = document.createElement('dialog');
-  folderModal.className = 'confirmation-dialog';
-
-  folderModal.innerHTML = `
-    <div class="confirmation-content">
-      <span class="material-symbols-outlined warning-icon">warning</span>
-      <h3>Delete Folder?</h3>
-      <p>Are you sure you want to delete the folder "<strong>${folder.folderName}</strong>" and all its files? This action cannot be undone.</p>
-      <div class="dialog-actions">
-        <button class="delete-btn" id="confirmFolderDelete">
-          <span class="material-symbols-outlined">delete</span>
-          Delete
-        </button>
-        <button class="secondary-btn" id="cancelFolderDelete">
-          <span class="material-symbols-outlined">close</span>
-          Cancel
-        </button>
-      </div>
-    </div>
-  `;
-}
-  document.body.appendChild(folderModal);
-  folderModal.showModal();
-
-  document.getElementById('confirmFolderDelete').addEventListener('click', () => {
-    projects[projectIndex].folders.splice(folderIndex, 1);
-    saveProjects();
-    renderProjects();
-    folderModal.close();
-    document.body.removeChild(folderModal);
-    showNotification(`Folder "${folder.folderName}" deleted`, "success");
-  });
-
-  document.getElementById('cancelFolderDelete').addEventListener('click', () => {
-    folderModal.close();
-    document.body.removeChild(folderModal);
-  });
-}
-
+  
   document.body.appendChild(projectModal);
   projectModal.showModal();
   
@@ -375,7 +334,7 @@ function deleteProject(index) {
     projectModal.close();
     document.body.removeChild(projectModal);
   });
-
+}
 
 /**
  * Formats a date string to a more readable format
@@ -608,9 +567,6 @@ function renderTableView(projectsList) {
               <span class="material-symbols-outlined">folder</span>
               <span class="folder-name">${folder.folderName}</span>
               <span class="file-count">${folder.files.length} files</span>
-              <button class="row-action-btn action-delete" onclick="deleteFolder(${i}, ${folderIndex})" title="Delete Folder">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
             </div>
             <div class="file-list">
         `;
@@ -652,11 +608,11 @@ function renderTableView(projectsList) {
         detailsContent += `
             </div>
             <div class="folder-actions-details">
-              <button class="row-action-btn action-upload" onclick="openFileUploadForFolder(${i}, ${folderIndex})" title="Upload Files">
+              <button class="upload-btn-small" onclick="openFileUploadForFolder(${i}, ${folderIndex})">
                 <span class="material-symbols-outlined">upload_file</span>
+                <span>Upload Files</span>
               </button>
             </div>
-
           </div>
         `;
       });
@@ -839,7 +795,10 @@ function renderGridView(projectsList) {
         </button>
         <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
           <span class="material-symbols-outlined">create_new_folder</span>
-        </button>        
+        </button>
+        <button class="row-action-btn action-upload" onclick="uploadFilesToProject(${i})" title="Upload Files">
+          <span class="material-symbols-outlined">upload_file</span>
+        </button>
         <button class="row-action-btn action-edit" onclick="openProjectDialog(true, ${i})" title="Edit Project">
           <span class="material-symbols-outlined">edit</span>
         </button>
@@ -911,42 +870,41 @@ function handleSort(column) {
   
   renderProjects();
 }
- // Toggle row expansion for project details
 
-  function addFolderToProject(index) {
-    const folderDialog = document.getElementById('folderDialog');
-    const folderNameInput = document.getElementById('folderNameInput');
-    const folderNameError = document.getElementById('folderNameError');
+/**
+ * Opens a dialog to add a folder to a project
+ * @param {number} index - The index of the project to add a folder to
+ */
+function addFolderToProject(index) {
+  const folderDialog = document.getElementById('folderDialog');
+  const folderNameInput = document.getElementById('folderNameInput');
+  const folderNameError = document.getElementById('folderNameError');
 
-    // Clear any previous state
-    folderNameInput.value = '';
-    folderNameError.style.display = 'none';
+  folderNameInput.value = '';
+  folderNameError.style.display = 'none';
+  folderDialog.dataset.projectIndex = index;
 
-    // Set the correct index cleanly
-    folderDialog.dataset.projectIndex = '';
-    folderDialog.dataset.projectIndex = index;
+  // Ensure any old listeners are removed
+  const newCreateBtn = folderDialog.querySelector('#createFolderBtn');
+  const oldBtn = newCreateBtn.cloneNode(true);
+  newCreateBtn.parentNode.replaceChild(oldBtn, newCreateBtn);
 
-    // Reset old event listener
-    const newCreateBtn = folderDialog.querySelector('#createFolderBtn');
-    const oldBtn = newCreateBtn.cloneNode(true);
-    newCreateBtn.parentNode.replaceChild(oldBtn, newCreateBtn);
+  // Add new listener tied to the correct project index
+  oldBtn.addEventListener('click', handleCreateFolder);
+  folderDialog.showModal();
+}
 
-    // Attach listener with correct context
-    oldBtn.addEventListener('click', handleCreateFolder);
-    folderDialog.showModal();
-  }
 
 //creation of a new folder from the folder dialog
 function handleCreateFolder() {
   const folderDialog = document.getElementById('folderDialog');
   const folderNameInput = document.getElementById('folderNameInput');
   const folderNameError = document.getElementById('folderNameError');
-  
   const rawIndex = folderDialog.dataset.projectIndex;
 
   const projectIndex = parseInt(rawIndex);
   console.log("Creating folder for project index:", projectIndex, "from raw:", rawIndex);
-
+  console.log("Projects array length:", projects.length);
 
   if (isNaN(projectIndex) || !projects[projectIndex]) {
     console.error("Invalid project index:", projectIndex);
