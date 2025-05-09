@@ -380,6 +380,7 @@ function deleteFolder(projectIndex, folderIndex) {
   });
   
   
+
 /**
  * Formats a date string to a more readable format
  * @param {string} dateString - ISO date string
@@ -568,6 +569,9 @@ function renderTableView(projectsList) {
           <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
             <span class="material-symbols-outlined">create_new_folder</span>
           </button>
+          <button class="row-action-btn action-upload" onclick="uploadFilesToProject(${i})" title="Upload Files">
+            <span class="material-symbols-outlined">upload_file</span>
+          </button>
           <button class="row-action-btn action-edit" onclick="openProjectDialog(true, ${i})" title="Edit Project">
             <span class="material-symbols-outlined">edit</span>
           </button>
@@ -591,21 +595,14 @@ function renderTableView(projectsList) {
     
     // Generate content for the details cell
     let detailsContent = `
-        <div class="project-details">
-          <div class="project-info">
-          <h3>Project Files</h3>
-          <div class="row-actions">
-            <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
-              <span class="material-symbols-outlined">create_new_folder</span>
-            </button>
-            <button class="row-action-btn action-workflow" onclick="openWorkflowDialog(${i})" title="Open Workflows">
-              <span class="material-symbols-outlined">hub</span>
-            </button>
-          </div>
-        </div>
-          <div class="folder-list">
-      `;
-
+      <div class="project-details">
+        <div class="details-header">
+      <div class="project-info">
+        <h3>Project Files</h3>
+      </div>
+      </div>
+        <div class="folder-list">
+    `;
     
     if (project.folders && project.folders.length > 0) {
       project.folders.forEach((folder, folderIndex) => {
