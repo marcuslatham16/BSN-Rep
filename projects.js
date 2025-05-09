@@ -555,11 +555,7 @@ function renderTableView(projectsList) {
       <div class="project-info">
         <h3>Project Files</h3>
       </div>
-      <div class="folder-actions">
-        <button onclick="addFolderToProject(${i})">Add Folder</button>
       </div>
-    </div>
-
         <div class="folder-list">
     `;
     
@@ -622,13 +618,7 @@ function renderTableView(projectsList) {
       });
     } else {
       detailsContent += `
-        <div class="empty-folders">
-          <p>No folders found. Create a new folder to start adding files.</p>
-          <button class="action-btn" onclick="addFolderToProject(${i})">
-            <span class="material-symbols-outlined">create_new_folder</span>
-            <span>Create Folder</span>
-          </button>
-        </div>
+        
       `;
     }
     
