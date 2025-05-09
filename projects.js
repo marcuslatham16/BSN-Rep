@@ -235,15 +235,14 @@ function handleSaveProject() {
   const owner = document.getElementById("projectOwnerInput").value.trim();
   const status = document.getElementById("projectStatusSelect").value;
   const coachingRequired = document.getElementById("coachingRequiredInput").checked;
-  
-  // Get selected permission
+
   let permission = 'read';
   if (document.getElementById("permissionDownload").checked) {
     permission = 'download';
   } else if (document.getElementById("permissionFull").checked) {
     permission = 'full';
   }
-  
+
   const nameError = document.getElementById("nameError");
   const ownerError = document.getElementById("ownerError");
 
@@ -251,53 +250,43 @@ function handleSaveProject() {
   ownerError.style.display = owner ? "none" : "block";
 
   if (!name || !owner) return;
-  
-  // Create timestamp for new projects
+
   const dateCreated = editingIndex !== null ? projects[editingIndex].dateCreated : new Date().toISOString();
 
-  console.log("editingIndex =", window.editingIndex);
-  if (window.editingIndex !== null && projects[window.editingIndex]) {
-    console.log('updating')
-    projects[window.editingIndex] = { 
-      ...projects[window.editingIndex], 
-      name, 
-      description: desc, 
+  if (editingIndex !== null && projects[editingIndex]) {
+    projects[editingIndex] = {
+      ...projects[editingIndex],
+      name,
+      description: desc,
       owner,
       status,
       coachingRequired,
       permission
     };
   } else {
-    console.log('new')
-    projects.push({ 
-      name, 
-      description: desc, 
+    projects.push({
+      name,
+      description: desc,
       owner,
       dateCreated,
       status,
       coachingRequired,
       permission,
-      following: true, // Set following to true by default for new projects
-      folders: [] 
+      following: true,
+      folders: []
     });
   }
 
   saveProjects();
   renderProjects();
   closeProjectDialog();
-  
-  // Show success notification
-  showNotification(window.editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
+
+  showNotification(editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
 }
 
-/**
- * Handles deleting a project
- * @param {number} index - Index of the project to delete
- */
 function deleteProject(index) {
   const projectModal = document.createElement('dialog');
   projectModal.className = 'confirmation-dialog';
-  
   projectModal.innerHTML = `
     <div class="confirmation-content">
       <span class="material-symbols-outlined warning-icon">warning</span>
@@ -315,7 +304,67 @@ function deleteProject(index) {
       </div>
     </div>
   `;
-  
+
+  document.body.appendChild(projectModal);
+  projectModal.showModal();
+
+  document.getElementById('confirmDelete').addEventListener('click', () => {
+    projects.splice(index, 1);
+    saveProjects();
+    renderProjects();
+    projectModal.close();
+    document.body.removeChild(projectModal);
+    showNotification("Project deleted successfully!", "success");
+  });
+
+  document.getElementById('cancelDelete').addEventListener('click', () => {
+    projectModal.close();
+    document.body.removeChild(projectModal);
+  });
+}
+
+function deleteFolder(projectIndex, folderIndex) {
+  const folder = projects[projectIndex].folders[folderIndex];
+  const folderModal = document.createElement('dialog');
+  folderModal.className = 'confirmation-dialog';
+
+  folderModal.innerHTML = `
+    <div class="confirmation-content">
+      <span class="material-symbols-outlined warning-icon">warning</span>
+      <h3>Delete Folder?</h3>
+      <p>Are you sure you want to delete the folder "<strong>${folder.folderName}</strong>" and all its files? This action cannot be undone.</p>
+      <div class="dialog-actions">
+        <button class="delete-btn" id="confirmFolderDelete">
+          <span class="material-symbols-outlined">delete</span>
+          Delete
+        </button>
+        <button class="secondary-btn" id="cancelFolderDelete">
+          <span class="material-symbols-outlined">close</span>
+          Cancel
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(folderModal);
+  folderModal.showModal();
+
+  document.getElementById('confirmFolderDelete').addEventListener('click', () => {
+    projects[projectIndex].folders.splice(folderIndex, 1);
+    saveProjects();
+    renderProjects();
+    folderModal.close();
+    document.body.removeChild(folderModal);
+    showNotification(`Folder "${folder.folderName}" deleted`, "success");
+  });
+
+  document.getElementById('cancelFolderDelete').addEventListener('click', () => {
+    folderModal.close();
+    document.body.removeChild(folderModal);
+  });
+}
+
+
   document.body.appendChild(projectModal);
   projectModal.showModal();
   
@@ -330,12 +379,7 @@ function deleteProject(index) {
     showNotification("Project deleted successfully!", "success");
   });
   
-  document.getElementById('cancelDelete').addEventListener('click', () => {
-    projectModal.close();
-    document.body.removeChild(projectModal);
-  });
-}
-
+  
 /**
  * Formats a date string to a more readable format
  * @param {string} dateString - ISO date string
@@ -524,9 +568,6 @@ function renderTableView(projectsList) {
           <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
             <span class="material-symbols-outlined">create_new_folder</span>
           </button>
-          <button class="row-action-btn action-upload" onclick="uploadFilesToProject(${i})" title="Upload Files">
-            <span class="material-symbols-outlined">upload_file</span>
-          </button>
           <button class="row-action-btn action-edit" onclick="openProjectDialog(true, ${i})" title="Edit Project">
             <span class="material-symbols-outlined">edit</span>
           </button>
@@ -550,14 +591,21 @@ function renderTableView(projectsList) {
     
     // Generate content for the details cell
     let detailsContent = `
-      <div class="project-details">
-        <div class="details-header">
-      <div class="project-info">
-        <h3>Project Files</h3>
-      </div>
-      </div>
-        <div class="folder-list">
-    `;
+        <div class="project-details">
+          <div class="project-info">
+          <h3>Project Files</h3>
+          <div class="row-actions">
+            <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
+              <span class="material-symbols-outlined">create_new_folder</span>
+            </button>
+            <button class="row-action-btn action-workflow" onclick="openWorkflowDialog(${i})" title="Open Workflows">
+              <span class="material-symbols-outlined">hub</span>
+            </button>
+          </div>
+        </div>
+          <div class="folder-list">
+      `;
+
     
     if (project.folders && project.folders.length > 0) {
       project.folders.forEach((folder, folderIndex) => {
@@ -567,6 +615,9 @@ function renderTableView(projectsList) {
               <span class="material-symbols-outlined">folder</span>
               <span class="folder-name">${folder.folderName}</span>
               <span class="file-count">${folder.files.length} files</span>
+              <button class="row-action-btn action-delete" onclick="deleteFolder(${i}, ${folderIndex})" title="Delete Folder">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
             </div>
             <div class="file-list">
         `;
