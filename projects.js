@@ -235,14 +235,15 @@ function handleSaveProject() {
   const owner = document.getElementById("projectOwnerInput").value.trim();
   const status = document.getElementById("projectStatusSelect").value;
   const coachingRequired = document.getElementById("coachingRequiredInput").checked;
-
+  
+  // Get selected permission
   let permission = 'read';
   if (document.getElementById("permissionDownload").checked) {
     permission = 'download';
   } else if (document.getElementById("permissionFull").checked) {
     permission = 'full';
   }
-
+  
   const nameError = document.getElementById("nameError");
   const ownerError = document.getElementById("ownerError");
 
@@ -250,43 +251,53 @@ function handleSaveProject() {
   ownerError.style.display = owner ? "none" : "block";
 
   if (!name || !owner) return;
-
+  
+  // Create timestamp for new projects
   const dateCreated = editingIndex !== null ? projects[editingIndex].dateCreated : new Date().toISOString();
 
-  if (editingIndex !== null && projects[editingIndex]) {
-    projects[editingIndex] = {
-      ...projects[editingIndex],
-      name,
-      description: desc,
+  console.log("editingIndex =", window.editingIndex);
+  if (window.editingIndex !== null && projects[window.editingIndex]) {
+    console.log('updating')
+    projects[window.editingIndex] = { 
+      ...projects[window.editingIndex], 
+      name, 
+      description: desc, 
       owner,
       status,
       coachingRequired,
       permission
     };
   } else {
-    projects.push({
-      name,
-      description: desc,
+    console.log('new')
+    projects.push({ 
+      name, 
+      description: desc, 
       owner,
       dateCreated,
       status,
       coachingRequired,
       permission,
-      following: true,
-      folders: []
+      following: true, // Set following to true by default for new projects
+      folders: [] 
     });
   }
 
   saveProjects();
   renderProjects();
   closeProjectDialog();
-
-  showNotification(editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
+  
+  // Show success notification
+  showNotification(window.editingIndex !== null ? "Project updated successfully!" : "Project created successfully!", "success");
 }
 
+/**
+ * Handles deleting a project
+ * @param {number} index - Index of the project to delete
+ */
 function deleteProject(index) {
   const projectModal = document.createElement('dialog');
   projectModal.className = 'confirmation-dialog';
+  
   projectModal.innerHTML = `
     <div class="confirmation-content">
       <span class="material-symbols-outlined warning-icon">warning</span>
@@ -305,25 +316,7 @@ function deleteProject(index) {
     </div>
   `;
 
-  document.body.appendChild(projectModal);
-  projectModal.showModal();
-
-  document.getElementById('confirmDelete').addEventListener('click', () => {
-    projects.splice(index, 1);
-    saveProjects();
-    renderProjects();
-    projectModal.close();
-    document.body.removeChild(projectModal);
-    showNotification("Project deleted successfully!", "success");
-  });
-
-  document.getElementById('cancelDelete').addEventListener('click', () => {
-    projectModal.close();
-    document.body.removeChild(projectModal);
-  });
-}
-
-function deleteFolder(projectIndex, folderIndex) {
+  function deleteFolder(projectIndex, folderIndex) {    
   const folder = projects[projectIndex].folders[folderIndex];
   const folderModal = document.createElement('dialog');
   folderModal.className = 'confirmation-dialog';
@@ -345,7 +338,7 @@ function deleteFolder(projectIndex, folderIndex) {
       </div>
     </div>
   `;
-
+}
   document.body.appendChild(folderModal);
   folderModal.showModal();
 
@@ -364,7 +357,6 @@ function deleteFolder(projectIndex, folderIndex) {
   });
 }
 
-
   document.body.appendChild(projectModal);
   projectModal.showModal();
   
@@ -379,7 +371,11 @@ function deleteFolder(projectIndex, folderIndex) {
     showNotification("Project deleted successfully!", "success");
   });
   
-  
+  document.getElementById('cancelDelete').addEventListener('click', () => {
+    projectModal.close();
+    document.body.removeChild(projectModal);
+  });
+
 
 /**
  * Formats a date string to a more readable format
