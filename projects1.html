@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects - Document Repository</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..700,0..1,0" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="projects.css" />
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <span class="material-symbols-outlined">folder</span>
+      <h2>DocRepo</h2>
+    </div>
+    <nav>
+      <a href="index.html" class="sidebar-item">
+        <span class="material-symbols-outlined">home</span> 
+        <span>Home</span>
+      </a>
+      <a href="projects.html" class="sidebar-item active">
+        <span class="material-symbols-outlined">workspaces</span> 
+        <span>Projects</span>
+      </a>
+      <div class="sidebar-item">
+        <span class="material-symbols-outlined">area_chart</span> 
+        <span>Reports</span>
+      </div>
+      <div class="sidebar-item">
+        <span class="material-symbols-outlined">tune</span> 
+        <span>Settings</span>
+      </div>
+    </nav>
+  </div>
+
+  <div class="content-wrapper">
+    <header>
+      <button id="menu-toggle" class="menu-toggle">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      
+      <div class="header-inner">
+        <div class="breadcrumb" id="breadcrumb">
+          <span class="material-symbols-outlined">folder</span>
+          Home / Projects
+        </div>
+        
+        <div class="header-actions">
+          <div class="search-bar">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" id="searchInput" placeholder="Search projects and files" oninput="handleSearch()" />
+          </div>
+          <button class="create-btn" onclick="openProjectDialog()" title="Create New Project">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <div class="user-info">
+            <span class="material-symbols-outlined">account_circle</span>
+            <div class="user-details">
+              <strong>User Name</strong>
+              <small>Admin</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="title-section">
+          <h1>Projects</h1>
+          <p class="subtitle">Manage your document repositories</p>
+        </div>
+        
+        <div class="view-controls">
+          <div class="column-selector">
+            <button id="columnSelectorBtn" class="column-selector-btn">
+              <span class="material-symbols-outlined">view_column</span>
+              <span>Columns</span>
+            </button>
+            <div id="columnOptions" class="column-options">
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="name" checked> Project Name
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="owner" checked> Created By
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="date" checked> Date Created
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="status" checked> Status
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="permission" checked> Permission
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="coaching" checked> Coaching
+                </label>
+              </div>
+              <div class="column-option">
+                <label>
+                  <input type="checkbox" data-column="files" checked> Files
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" data-view="table">
+              <span class="material-symbols-outlined">table_rows</span>
+            </button>
+            <button class="view-toggle-btn" data-view="grid">
+              <span class="material-symbols-outlined">grid_view</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="view-container table-view" id="viewContainer">
+        <!-- Table View -->
+        <div class="projects-table-container">
+          <table class="projects-table" id="projectsTable">
+            <thead>
+              <tr>
+                <th class="column-name sortable" data-sort="name">Project Name <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-owner sortable" data-sort="owner">Created By <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-date sortable" data-sort="date">Date Created <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-status sortable" data-sort="status">Status <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-permission">Permission</th>
+                <th class="column-coaching">Coaching</th>
+                <th class="column-files sortable" data-sort="files">Files <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
+                <th class="column-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="projectsTableBody">
+              <!-- Project rows will be populated here -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Grid View (initially hidden) -->
+        <div class="projects-grid" id="projectsGrid" style="display: none;">
+          <!-- Project cards will be populated here -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Project Dialog -->
+  <dialog id="projectDialog">
+    <h2 id="dialogTitle">New Project</h2>
+    <form id="projectForm">
+      <div class="form-group">
+        <label for="projectNameInput">Project Name</label>
+        <input type="text" id="projectNameInput" placeholder="Enter project name" />
+        <div id="nameError" class="error-message">Project name is required.</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="projectDescInput">Description</label>
+        <textarea id="projectDescInput" placeholder="Enter description"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="projectOwnerInput">Project Owner</label>
+        <input type="text" id="projectOwnerInput" placeholder="Enter owner name" />
+        <div id="ownerError" class="error-message">Project owner is required.</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="projectStatusSelect">Status</label>
+        <select id="projectStatusSelect" class="form-select">
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+          <option value="archived">Archived</option>
+        </select>
+      </div>
+      
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="coachingRequiredInput" />
+          <span>Coaching Required</span>
+        </label>
+      </div>
+      
+      <div class="form-group">
+        <label>Permissions</label>
+        <div class="permissions-options">
+          <label class="checkbox-label">
+            <input type="radio" name="permissions" value="read" id="permissionReadOnly" checked />
+            <span>Read Only</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="radio" name="permissions" value="download" id="permissionDownload" />
+            <span>Read & Download</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="radio" name="permissions" value="full" id="permissionFull" />
+            <span>Full Control</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="saveBtn">
+          <span class="material-symbols-outlined">save</span>
+          <span id="saveBtnText">Create</span>
+        </button>
+        <button type="button" onclick="closeProjectDialog()">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+  
+  <!-- Folder Dialog -->
+  <dialog id="folderDialog">
+    <h2>New Folder</h2>
+    <form id="folderForm">
+      <div class="form-group">
+        <label for="folderNameInput">Folder Name</label>
+        <input type="text" id="folderNameInput" placeholder="Enter folder name" />
+        <div id="folderNameError" class="error-message">Folder name is required.</div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="createFolderBtn">
+          <span class="material-symbols-outlined">create_new_folder</span>
+          <span>Create Folder</span>
+        </button>
+        <button type="button" id="cancelFolderBtn">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+  
+  <!-- File Upload Dialog -->
+  <dialog id="fileUploadDialog">
+    <h2>Upload Files</h2>
+    <form id="fileUploadForm">
+      <div class="form-group">
+        <label for="fileInput">Select Files</label>
+        <div class="file-upload-container">
+          <input type="file" id="fileInput" multiple />
+          <button type="button" class="file-select-btn">
+            <span class="material-symbols-outlined">upload_file</span>
+            <span>Choose Files</span>
+          </button>
+        </div>
+        <div id="selectedFiles" class="selected-files"></div>
+      </div>
+      
+      <div class="dialog-actions">
+        <button type="button" id="uploadFilesBtn">
+          <span class="material-symbols-outlined">cloud_upload</span>
+          <span>Upload</span>
+        </button>
+        <button type="button" id="cancelUploadBtn">
+          <span class="material-symbols-outlined">close</span>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    // Helper function to toggle the expandable row
+    function toggleExpandRow(button) {
+      const projectRow = button.closest('tr');
+      const detailsRow = projectRow.nextElementSibling;
+      const isExpanded = detailsRow.style.display !== 'none';
+      
+      // Update the expand button icon
+      const expandIcon = button.querySelector('.material-symbols-outlined');
+      expandIcon.textContent = isExpanded ? 'chevron_right' : 'expand_more';
+      
+      // Toggle the row display
+      detailsRow.style.display = isExpanded ? 'none' : 'table-row';
+      
+      // Add expanded class to parent row for styling
+      projectRow.classList.toggle('expanded', !isExpanded);
+    }
+  </script>
+  
+  <script src="projects.js"></script>
+</body>
+</html>
