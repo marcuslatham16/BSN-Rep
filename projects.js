@@ -883,6 +883,8 @@ function addFolderToProject(index) {
   folderNameInput.value = '';
   folderNameError.style.display = 'none';
   folderDialog.dataset.projectIndex = index;
+  document.getElementById("folderPermissionSelect").value = "user";
+
 
   // Ensure any old listeners are removed
   const newCreateBtn = folderDialog.querySelector('#createFolderBtn');
@@ -925,10 +927,14 @@ function handleCreateFolder() {
     project.folders = [];
   }
 
+  const permission = document.getElementById("folderPermissionSelect").value;
+
   project.folders.push({
     folderName: name,
+    permission,
     files: []
   });
+
 
   saveProjects();
   renderProjects();

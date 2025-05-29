@@ -171,26 +171,35 @@
   
   <!-- Folder Dialog -->
   <dialog id="folderDialog">
-    <h2>New Folder</h2>
-    <form id="folderForm">
-      <div class="form-group">
-        <label for="folderNameInput">Folder Name</label>
-        <input type="text" id="folderNameInput" placeholder="Enter folder name" />
-        <div id="folderNameError" class="error-message">Folder name is required.</div>
-      </div>
-      
-      <div class="dialog-actions">
-        <button type="button" id="createFolderBtn">
-          <span class="material-symbols-outlined">create_new_folder</span>
-          <span>Create Folder</span>
-        </button>
-        <button type="button" id="cancelFolderBtn">
-          <span class="material-symbols-outlined">close</span>
-          <span>Cancel</span>
-        </button>
-      </div>
-    </form>
-  </dialog>
+  <h2>New Folder</h2>
+  <form id="folderForm">
+    <div class="form-group">
+      <label for="folderNameInput">Folder Name</label>
+      <input type="text" id="folderNameInput" placeholder="Enter folder name" />
+      <div id="folderNameError" class="error-message">Folder name is required.</div>
+    </div>
+
+    <div class="form-group">
+      <label for="folderPermissionSelect">Folder Permission Level</label>
+      <select id="folderPermissionSelect" class="form-select">
+        <option value="user">User</option>
+        <option value="manager">Manager</option>
+      </select>
+    </div>
+
+    <div class="dialog-actions">
+      <button type="button" id="createFolderBtn">
+        <span class="material-symbols-outlined">create_new_folder</span>
+        <span>Create Folder</span>
+      </button>
+      <button type="button" id="cancelFolderBtn">
+        <span class="material-symbols-outlined">close</span>
+        <span>Cancel</span>
+      </button>
+    </div>
+  </form>
+</dialog>
+
   
   <!-- File Upload Dialog -->
   <dialog id="fileUploadDialog">
