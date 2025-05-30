@@ -106,7 +106,7 @@
               </div>
               <div class="column-option">
                 <label>
-                  <input type="checkbox" data-column="coaching" checked> Coaching
+                  <input type="checkbox" data-column="coaching" checked> Review Required
                 </label>
               </div>
               <div class="column-option">
@@ -139,7 +139,6 @@
                 <th class="column-date sortable" data-sort="date">Date Created <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
                 <th class="column-status sortable" data-sort="status">Status <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
                 <th class="column-permission">Permission</th>
-                <th class="column-coaching">Coaching</th>
                 <th class="column-files sortable" data-sort="files">Files <span class="sort-icon material-symbols-outlined">arrow_drop_down</span></th>
                 <th class="column-actions">Actions</th>
               </tr>
@@ -183,7 +182,7 @@
         <label for="projectStatusSelect">Status</label>
         <select id="projectStatusSelect" class="form-select">
           <option value="active">Active</option>
-          <option value="pending">Pending</option>
+          <option value="pending">Pending Review</option>
           <option value="completed">Completed</option>
           <option value="archived">Archived</option>
         </select>
@@ -192,7 +191,7 @@
       <div class="form-group checkbox-group">
         <label class="checkbox-label">
           <input type="checkbox" id="coachingRequiredInput" />
-          <span>Coaching Required</span>
+          <span>Review Required</span>
         </label>
       </div>
       
