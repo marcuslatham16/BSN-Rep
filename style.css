@@ -204,26 +204,25 @@
     color: var(--gray-text);
     max-width: 400px;
   }
-  
-  /* Coaching badge for What's New section */
-  .coaching-info {
-    margin-top: 16px;
-  }
-  
-  .coaching-info .coaching-badge {
-    display: inline-flex;
+
+    .icon-btn {
+    background: none;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    background-color: rgba(0, 75, 152, 0.1);
-    color: var(--primary);
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    font-size: 13px;
+    justify-content: center;
+    cursor: pointer;
   }
+
+  .icon-btn:hover {
+    background-color: var(--highlight-bg, #f0f0f0);
+  }
+
   
-  .coaching-info .coaching-badge .material-symbols-outlined {
-    font-size: 16px;
-  }/* What's New Section */
+  /* What's New Section */
   .section-header {
     display: flex;
     justify-content: space-between;
@@ -318,6 +317,7 @@
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 16px;
+    width: 100%;
   }
   
   .detail-item {
