@@ -433,6 +433,12 @@ function renderProjects() {
   updateSortIndicators();
 }
 
+function createWorkflowForm(projectIndex, folderIndex) {
+  const folderName = projects[projectIndex].folders[folderIndex].folderName;
+  showNotification(`Create Workflow Form for "${folderName}"`, "info");
+  // Replace with modal logic as needed
+}
+
 /**
  * Renders projects in table view
  * @param {Array} projectsList - The projects to render 

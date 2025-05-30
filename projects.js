@@ -562,15 +562,17 @@ function renderTableView(projectsList) {
       if (project.folders && project.folders.length > 0) {
       project.folders.forEach((folder, folderIndex) => {
         detailsContent += `
-          <div class="folder-item-details">
-            <div class="folder-header-details">
-              <span class="material-symbols-outlined">folder</span>
-              <span class="folder-name">${folder.folderName}</span>
-              <span class="file-count">${folder.files.length} files</span>
-              <button class="upload-icon-btn" title="Upload Files" onclick="openFileUploadForFolder(${i}, ${folderIndex})">
-                <span class="material-symbols-outlined">upload_file</span>
-              </button>
-            </div>
+          <div class="folder-header-details">
+          <span class="material-symbols-outlined">folder</span>
+          <span class="folder-name">${folder.folderName}</span>
+          <span class="file-count">${folder.files.length} files</span>
+          <button class="upload-icon-btn" title="Upload Files" onclick="openFileUploadForFolder(${i}, ${folderIndex})">
+            <span class="material-symbols-outlined">upload_file</span>
+          </button>
+          <button class="workflow-icon-btn" title="Create Workflow Form" onclick="createWorkflowForm(${i}, ${folderIndex})">
+            <span class="material-symbols-outlined">note_add</span>
+          </button>
+        </div>
             <div class="file-list">
       `;
 

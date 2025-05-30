@@ -627,6 +627,7 @@
     box-shadow: var(--shadow-sm);
     height: 100%;
     display: flex;
+    width: 100%;
     flex-direction: column;
   }
   
@@ -869,7 +870,30 @@
     background-color: var(--primary-hover);
     box-shadow: var(--shadow-md);
   }
-  
+  .folder-item-details {
+  width: 100%;
+  display: block;
+  }
+
+  .workflow-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 8px;
+    color: var(--primary);
+  }
+
+  .workflow-icon-btn:hover {
+    color: var(--highlight);
+  }
+
+
+  .file-item {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
   .selected-files {
     width: 100%;
     margin-top: 12px;
