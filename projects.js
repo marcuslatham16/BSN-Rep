@@ -559,7 +559,7 @@ function renderTableView(projectsList) {
         <div class="folder-list">
     `;
     
-    if (project.folders && project.folders.length > 0) {
+      if (project.folders && project.folders.length > 0) {
       project.folders.forEach((folder, folderIndex) => {
         detailsContent += `
           <div class="folder-item-details">
@@ -567,9 +567,13 @@ function renderTableView(projectsList) {
               <span class="material-symbols-outlined">folder</span>
               <span class="folder-name">${folder.folderName}</span>
               <span class="file-count">${folder.files.length} files</span>
+              <button class="upload-icon-btn" title="Upload Files" onclick="openFileUploadForFolder(${i}, ${folderIndex})">
+                <span class="material-symbols-outlined">upload_file</span>
+              </button>
             </div>
             <div class="file-list">
-        `;
+      `;
+
         
         if (folder.files && folder.files.length > 0) {
           folder.files.forEach(file => {
@@ -880,6 +884,10 @@ function addFolderToProject(index) {
   const folderNameInput = document.getElementById('folderNameInput');
   const folderNameError = document.getElementById('folderNameError');
 
+  const permissionSelect = document.getElementById("folderPermissionSelect");
+  if (permissionSelect) permissionSelect.value = "user";
+
+
   folderNameInput.value = '';
   folderNameError.style.display = 'none';
   folderDialog.dataset.projectIndex = index;
@@ -927,13 +935,17 @@ function handleCreateFolder() {
     project.folders = [];
   }
 
-  const permission = document.getElementById("folderPermissionSelect").value;
+  const permission = document.getElementById("folderPermissionSelect")?.value || "user";
+  const permissionType = document.getElementById("folderPermissionType")?.value || "read";
 
   project.folders.push({
     folderName: name,
     permission,
+    permissionType,
     files: []
   });
+
+
 
 
   saveProjects();
