@@ -106,8 +106,7 @@
     display: flex;
     align-items: center;
     padding: 8px 16px;
-    transition: var(--transition);
-    width: 100%;
+    transition: var(--transition);    
   }
   
   .file-item:hover {
@@ -123,7 +122,11 @@
   .file-name {
     flex: 1;
     font-size: 14px;
+    white-space: normal;     /* Allow wrapping */
+    word-break: break-word;  /* Break long words */
+    overflow-wrap: anywhere; /* Wrap wherever necessary */
   }
+
   
   .file-actions {
     display: flex;
