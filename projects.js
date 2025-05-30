@@ -433,175 +433,83 @@ function renderProjects() {
   updateSortIndicators();
 }
 
-/**
- * Renders projects in table view
- * @param {Array} projectsList - The projects to render 
- */
+
+// Renders projects in table view
 function renderTableView(projectsList) {
-  const tableBody = document.getElementById('projectsTableBody');
-  tableBody.innerHTML = '';
-  
+  const tableBody = document.getElementById("projectsTableBody");
+  tableBody.innerHTML = "";
+
   projectsList.forEach((project, i) => {
-    const totalFiles = getTotalFilesCount(project);
-    const formattedDate = project.dateCreated ? formatDate(project.dateCreated) : 'N/A';
-    
-    // Create permission badge HTML
-    let permissionText = 'Read Only';
-    let permissionIcon = 'visibility';
-    let permissionClass = 'read';
-    
-    if (project.permission === 'download') {
-      permissionText = 'Read & Download';
-      permissionIcon = 'download';
-      permissionClass = 'download';
-    } else if (project.permission === 'full') {
-      permissionText = 'Full Control';
-      permissionIcon = 'edit';
-      permissionClass = 'full';
-    }
-    
-    // Create status badge HTML
-    let statusClass = 'active';
-    if (project.status) {
-      statusClass = project.status;
-    }
-    
-    // Create coaching icon HTML
-    const coachingClass = project.coachingRequired ? '' : 'inactive';
-    
-    // Create follow state HTML
-    const isFollowing = project.following !== false; // Default to true if not set
-    const followClass = isFollowing ? 'following' : '';
-    const followIcon = isFollowing ? 'notifications_active' : 'notifications';
-    
-    const row = document.createElement('tr');
-    row.className = 'project-row';
-    row.dataset.projectIndex = projects.findIndex(p =>
-      p.name === project.name &&
-      p.owner === project.owner &&
-      p.dateCreated === project.dateCreated
-    );
-    
+    const row = document.createElement("tr");
+    row.className = "project-row";
     row.innerHTML = `
-      <td class="column-name">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <button class="expand-btn" onclick="toggleExpandRow(this)" aria-label="Expand project">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-          <span class="material-symbols-outlined" style="color: var(--primary);">folder</span>
-          ${project.name}
-          ${isFollowing ? `
-            <span class="following-badge" title="You are following this project">
-              <span class="material-symbols-outlined">notifications</span>
-            </span>
-          ` : ''}
-        </div>
-      </td>
-      <td class="column-owner">${project.owner}</td>
-      <td class="column-date">${formattedDate}</td>
-      <td class="column-status">
-        <span class="status-badge status-${statusClass}">
-          ${statusClass.charAt(0).toUpperCase() + statusClass.slice(1)}
-        </span>
-      </td>
-      <td class="column-permission">
-        <span class="permission-badge permission-${permissionClass}">
-          <span class="material-symbols-outlined">${permissionIcon}</span>
-          <span>${permissionText}</span>
-        </span>
-      </td>
-      <td class="column-coaching">
-        <span class="coaching-badge ${coachingClass}" title="${project.coachingRequired ? 'Coaching Required' : 'No Coaching Required'}">
-          <span class="material-symbols-outlined" style="font-size: 16px;">psychology</span>
-        </span>
-      </td>
-      <td class="column-files">${totalFiles} files</td>
-      <td class="column-actions">
-        <div class="row-actions">
-          <button class="row-action-btn follow-btn ${followClass}" onclick="toggleFollowProject(${i}, event)" title="${isFollowing ? 'Unfollow Project' : 'Follow Project'}">
-            <span class="material-symbols-outlined">${followIcon}</span>
-          </button>
-          <button class="row-action-btn action-folder" onclick="addFolderToProject(${i})" title="Add Folder">
-            <span class="material-symbols-outlined">create_new_folder</span>
-          </button>
-          <button class="row-action-btn action-upload" onclick="uploadFilesToProject(${i})" title="Upload Files">
-            <span class="material-symbols-outlined">upload_file</span>
-          </button>
-          <button class="row-action-btn action-edit" onclick="openProjectDialog(true, ${i})" title="Edit Project">
-            <span class="material-symbols-outlined">edit</span>
-          </button>
-          <button class="row-action-btn action-delete" onclick="deleteProject(${i})" title="Delete Project">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </div>
+      <td>${project.name}</td>
+      <td>${project.description || ""}</td>
+      <td>${project.owner || ""}</td>
+      <td>${project.status || ""}</td>
+      <td>${project.coaching || ""}</td>
+      <td>${project.permission || ""}</td>
+      <td>${project.dateCreated || ""}</td>
+      <td>
+        <button class="expand-btn" onclick="toggleDetails(event, ${i})">
+          <span class="material-symbols-outlined">expand_more</span>
+        </button>
       </td>
     `;
-    
+
     tableBody.appendChild(row);
-    
-    // Create the expandable details row
-    const detailsRow = document.createElement('tr');
-    detailsRow.className = 'details-row';
-    detailsRow.style.display = 'none';
-    
-    // Create the cell that spans all columns
-    const detailsCell = document.createElement('td');
+
+    const detailsRow = document.createElement("tr");
+    detailsRow.className = "details-row";
+    detailsRow.style.display = "none";
+
+    const detailsCell = document.createElement("td");
     detailsCell.colSpan = 8;
-    
-    // Generate content for the details cell
+
     let detailsContent = `
       <div class="project-details">
         <div class="details-header">
-      <div class="project-info">
-        <h3>Project Files</h3>
-      </div>
-      </div>
+          <div class="project-info">
+            <h3>Project Files</h3>
+          </div>
+        </div>
         <div class="folder-list">
     `;
-    
-      if (project.folders && project.folders.length > 0) {
+
+    if (project.folders && project.folders.length > 0) {
       project.folders.forEach((folder, folderIndex) => {
         detailsContent += `
-          <div class="folder-header-details">
-          <span class="material-symbols-outlined">folder</span>
-          <span class="folder-name">${folder.folderName}</span>
-          <span class="file-count">${folder.files.length} files</span>
-          <button class="upload-icon-btn" title="Upload Files" onclick="openFileUploadForFolder(${i}, ${folderIndex})">
-            <span class="material-symbols-outlined">upload_file</span>
-          </button>
-          <button class="workflow-icon-btn" title="Create Workflow Form" onclick="createWorkflowForm(${i}, ${folderIndex})">
-            <span class="material-symbols-outlined">note_add</span>
-          </button>
-        </div>
-            <div class="file-list">
-      `;
+          <div class="folder-item-details">
+            <div class="folder-header-details" onclick="toggleFolderExpand(this)">
+              <span class="material-symbols-outlined">folder</span>
+              <span class="folder-name">${folder.folderName}</span>
+              <span class="file-count">${folder.files.length} files</span>
+              <button class="file-action-btn" onclick="event.stopPropagation(); deleteFolder(${i}, ${folderIndex})">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+            <div class="file-list" style="display: none;">
+        `;
 
-        
         if (folder.files && folder.files.length > 0) {
-          folder.files.forEach(file => {
-            // Determine file icon based on extension
+          folder.files.forEach((file, fileIndex) => {
             let fileIcon = 'description';
             const ext = file.split('.').pop().toLowerCase();
-            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
-              fileIcon = 'image';
-            } else if (['doc', 'docx'].includes(ext)) {
-              fileIcon = 'article';
-            } else if (['xls', 'xlsx'].includes(ext)) {
-              fileIcon = 'table';
-            } else if (['pdf'].includes(ext)) {
-              fileIcon = 'picture_as_pdf';
-            }
-            
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) fileIcon = 'image';
+            else if (['doc', 'docx'].includes(ext)) fileIcon = 'article';
+            else if (['xls', 'xlsx'].includes(ext)) fileIcon = 'table';
+            else if (['pdf'].includes(ext)) fileIcon = 'picture_as_pdf';
+
             detailsContent += `
               <div class="file-item">
                 <span class="material-symbols-outlined file-icon">${fileIcon}</span>
                 <span class="file-name">${file}</span>
                 <div class="file-actions">
-                  <button title="Preview File" class="file-action-btn">
-                    <span class="material-symbols-outlined">visibility</span>
-                  </button>
-                  <button title="Download File" class="file-action-btn">
+                  <button class="file-action-btn" onclick="event.stopPropagation(); downloadFile('${file}')">
                     <span class="material-symbols-outlined">download</span>
+                  </button>
+                  <button class="file-action-btn" onclick="event.stopPropagation(); deleteFile(${i}, ${folderIndex}, ${fileIndex})">
+                    <span class="material-symbols-outlined">delete</span>
                   </button>
                 </div>
               </div>
@@ -610,35 +518,46 @@ function renderTableView(projectsList) {
         } else {
           detailsContent += `<div class="empty-files">No files in this folder</div>`;
         }
-        
+
         detailsContent += `
-            </div>
-            <div class="folder-actions-details">
-              <button class="upload-btn-small" onclick="openFileUploadForFolder(${i}, ${folderIndex})">
-                <span class="material-symbols-outlined">upload_file</span>
-                <span>Upload Files</span>
-              </button>
-            </div>
-          </div>
+            </div> <!-- .file-list -->
+          </div> <!-- .folder-item-details -->
         `;
       });
     } else {
-      detailsContent += `
-        
-      `;
+      detailsContent += `<div class="empty-folders">No folders in this project</div>`;
     }
-    
+
     detailsContent += `
-        </div>
-      </div>
+        </div> <!-- .folder-list -->
+      </div> <!-- .project-details -->
     `;
-    
+
     detailsCell.innerHTML = detailsContent;
     detailsRow.appendChild(detailsCell);
-    
     tableBody.appendChild(detailsRow);
   });
 }
+
+function toggleFolderExpand(headerElement) {
+  const fileList = headerElement.nextElementSibling;
+  if (fileList && fileList.classList.contains("file-list")) {
+    fileList.style.display = fileList.style.display === "block" ? "none" : "block";
+  }
+}
+
+function deleteFile(projectIndex, folderIndex, fileIndex) {
+  projects[projectIndex].folders[folderIndex].files.splice(fileIndex, 1);
+  saveProjects();
+  renderProjects();
+}
+
+function deleteFolder(projectIndex, folderIndex) {
+  projects[projectIndex].folders.splice(folderIndex, 1);
+  saveProjects();
+  renderProjects();
+}
+
 
 
  //Toggle following status for a project
@@ -1230,7 +1149,31 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("cancelUploadBtn").addEventListener("click", function() {
     document.getElementById("fileUploadDialog").close();
   });
-  
+
+  /**
+ * Toggles the expanded state of a file item to show its preview
+ * @param {HTMLElement} fileItem - The file item element that was clicked
+ */
+  function toggleFolderExpand(headerEl) {
+  const fileList = headerEl.nextElementSibling;
+  if (fileList) {
+    const isExpanded = fileList.style.display === 'block';
+    fileList.style.display = isExpanded ? 'none' : 'block';
+  }
+}
+
+  function deleteFile(projectIndex, folderIndex, fileIndex) {
+  projects[projectIndex].folders[folderIndex].files.splice(fileIndex, 1);
+  saveProjects();
+  renderProjects();
+}
+
+function deleteFolder(projectIndex, folderIndex) {
+  projects[projectIndex].folders.splice(folderIndex, 1);
+  saveProjects();
+  renderProjects();
+}
+
   // Mobile menu toggle
   if (document.getElementById('menu-toggle')) {
     document.getElementById('menu-toggle').addEventListener('click', function() {
