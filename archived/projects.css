@@ -107,7 +107,7 @@
     align-items: center;
     padding: 8px 16px;
     transition: var(--transition);
-    width: 100%;   
+    fit-content: flex-start;  
   }
   
   .file-item:hover {
